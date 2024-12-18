@@ -1,7 +1,7 @@
-﻿using SuchByte.MacroDeck.GUI;
+﻿using System.Text.Json;
+using SuchByte.MacroDeck.GUI;
 using SuchByte.MacroDeck.GUI.CustomControls;
 using SuchByte.MacroDeck.Plugins;
-using System.Text.Json;
 
 namespace dichternebel.YaSB.MacroDeckPlug
 {
@@ -35,10 +35,13 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 .OrderBy(x => x)
                 .ToList();
 
-            comboBox1.DataSource = groups;
-            comboBox1.DisplayMember = "Group";
-
-            comboBox1.SelectedIndexChanged += ComboBox1_SelectedIndexChanged;
+            if (groups?.Count > 0)
+            {
+                comboBox1.SelectedIndexChanged -= ComboBox1_SelectedIndexChanged;
+                comboBox1.SelectedIndexChanged += ComboBox1_SelectedIndexChanged;
+                comboBox1.DataSource = groups;
+                comboBox1.SelectedIndex = 0;
+            }
         }
 
 
@@ -52,9 +55,13 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 .OrderBy(x => x.Name)
                 .ToList();
 
-            comboBox2.DataSource = filteredActions;
-            comboBox2.DisplayMember = "Name";
-            comboBox2.ValueMember = "Id";
+            if (filteredActions?.Count > 0)
+            {
+                comboBox2.DataSource = filteredActions;
+                comboBox2.DisplayMember = "Name";
+                comboBox2.ValueMember = "Id";
+                comboBox2.SelectedIndex = 0;
+            }
         }
 
         private void buttonPrimary1_Click(object sender, EventArgs e)
