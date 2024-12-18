@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace dichternebel.YaSB.Resources {
+namespace dichternebel.YaSB.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace dichternebel.YaSB.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("dichternebel.YaSB.Resources.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("dichternebel.YaSB.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -65,7 +65,7 @@ namespace dichternebel.YaSB.Resources {
         /// </summary>
         internal static System.Drawing.Bitmap streamerbot_logo_white {
             get {
-                object obj = ResourceManager.GetObject("streamerbot_logo_white", resourceCulture);
+                object obj = ResourceManager.GetObject("streamerbot-logo-white", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -75,7 +75,7 @@ namespace dichternebel.YaSB.Resources {
         /// </summary>
         internal static System.Drawing.Bitmap streamerbot_logo_white_checked {
             get {
-                object obj = ResourceManager.GetObject("streamerbot_logo_white_checked", resourceCulture);
+                object obj = ResourceManager.GetObject("streamerbot-logo-white-checked", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -85,7 +85,7 @@ namespace dichternebel.YaSB.Resources {
         /// </summary>
         internal static System.Drawing.Bitmap streamerbot_logo_white_error {
             get {
-                object obj = ResourceManager.GetObject("streamerbot_logo_white_error", resourceCulture);
+                object obj = ResourceManager.GetObject("streamerbot-logo-white-error", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

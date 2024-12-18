@@ -22,7 +22,7 @@ namespace dichternebel.YaSB
                 _isConnectedToStreamerBot = value;
                 if (value)
                 {
-                    Button.BackgroundImage = Resources.Resources.streamerbot_logo_white_checked;
+                    Button.BackgroundImage = Properties.Resources.streamerbot_logo_white_checked;
                     if (!IsConfigured)
                     {
                         SetDefaultEvents();
@@ -30,7 +30,7 @@ namespace dichternebel.YaSB
                 }
                 else
                 {
-                    Button.BackgroundImage = Resources.Resources.streamerbot_logo_white_error;
+                    Button.BackgroundImage = Properties.Resources.streamerbot_logo_white_error;
                 }
                 OnPropertyChanged();
             }
@@ -240,7 +240,7 @@ namespace dichternebel.YaSB
             Button = new ContentSelectorButton
             {
                 BackgroundImageLayout = ImageLayout.Stretch,
-                BackgroundImage = Resources.Resources.streamerbot_logo_white
+                BackgroundImage = Properties.Resources.streamerbot_logo_white
             };
 
             PropertyChanged += HandleOnPropertyChanged;
