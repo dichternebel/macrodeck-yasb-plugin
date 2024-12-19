@@ -325,6 +325,17 @@ namespace dichternebel.YaSB
 
         public async Task SendMessageAsync(string actionId, string actionName, string actionArgument = "")
         {
+            object args =new { };
+
+            try
+            {
+                args = string.IsNullOrEmpty(actionArgument) ? new { } : JsonSerializer.Deserialize<object>(actionArgument);
+            }
+            catch (Exception ex)
+            {
+                MacroDeckLogger.Warning(Main.Instance,$"Error serializing argument:\n{ex.Message}");
+            }
+
             var request = new
             {
                 request = RequestType.DoAction.ToString(),
@@ -334,10 +345,7 @@ namespace dichternebel.YaSB
                     id = actionId,
                     name = actionName
                 },
-                args = new
-                {
-                    actionArgument
-                }
+                args
             };
 
             string payload = JsonSerializer.Serialize(request, new JsonSerializerOptions
