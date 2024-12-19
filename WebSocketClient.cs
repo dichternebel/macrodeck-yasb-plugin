@@ -336,7 +336,7 @@ namespace dichternebel.YaSB
                 },
                 args = new
                 {
-                    key = actionArgument
+                    actionArgument
                 }
             };
 
