@@ -5,6 +5,8 @@ using SuchByte.MacroDeck.Logging;
 using SuchByte.MacroDeck.Plugins;
 using SuchByte.MacroDeck.Variables;
 using dichternebel.YaSB.StreamerBot;
+using dichternebel.YaSB.MacroDeckPlug;
+using System.Text.Json;
 
 namespace dichternebel.YaSB
 {
@@ -134,7 +136,21 @@ namespace dichternebel.YaSB
         {
             get
             {
-                return bool.TryParse(GetPluginConfiguration() ,out bool result) ? result : false;
+                return bool.TryParse(GetPluginConfiguration(), out bool result) ? result : false;
+            }
+            set
+            {
+                if (value.ToString() == GetPluginConfiguration()) return;
+                SetPluginConfiguration(value.ToString());
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsDeleteVariablesOnExit
+        {
+            get
+            {
+                return bool.TryParse(GetPluginConfiguration(), out bool result) ? result : false;
             }
             set
             {
@@ -233,6 +249,7 @@ namespace dichternebel.YaSB
             }
         }
 
+
         public Model()
         {
             _isConnectedToStreamerBot = false;
@@ -273,7 +290,7 @@ namespace dichternebel.YaSB
                     break;
                 case ResponseType.Events:
                     this.StreamerBotEvents = message.Events;
-                    // No that we have all available events subsribe to the selected ones
+                    // Now that we have all available events subsribe to the selected ones
                     WebSocketClient.SubscribeToServerAsync().Wait();
                     break;
                 case ResponseType.Event:
@@ -308,6 +325,15 @@ namespace dichternebel.YaSB
             foreach(var kvp in currentEvent.Data.KeyValuePairs)
             {
                 VariableManager.SetValue($"{currentEvent.EventInfo.Source}_{currentEvent.EventInfo.Type}", kvp.Value, VariableType.String, Main.Instance, new string[] { kvp.Key });
+            }
+        }
+
+        public void DeleteVariables()
+        {
+            var pluginVariables = VariableManager.GetVariables(Main.Instance);
+            foreach (var pluginVariable in pluginVariables)
+            {
+                VariableManager.DeleteVariable(pluginVariable.Name);
             }
         }
 

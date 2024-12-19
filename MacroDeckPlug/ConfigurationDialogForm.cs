@@ -27,7 +27,7 @@ namespace dichternebel.YaSB.MacroDeckPlug
             // This is not workin and I don't know why...
             //checkBox1.DataBindings.Add("Checked", _bindingSource, nameof(Model.WebSocketAuthenticationEnabled));
             checkBox1.Checked = Model.WebSocketAuthenticationEnabled;
-
+            
             textBoxPassword.DataBindings.Add("Enabled", _bindingSource, nameof(Model.WebSocketAuthenticationEnabled));
             textBoxPassword.DataBindings.Add("Text", _bindingSource, nameof(Model.WebSocketPassword));
             // ToDo:
@@ -47,6 +47,11 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 Model.ResetConfiguration();
                 checkBox2.Checked = false;
                 RefreshTreeView();
+            };
+            checkBox3.Checked = Model.IsDeleteVariablesOnExit;
+            checkBox3.CheckedChanged += (s, e) =>
+            {
+                Model.IsDeleteVariablesOnExit = checkBox3.Checked;
             };
 
             treeView1.CheckBoxes = true;

@@ -55,6 +55,7 @@ namespace dichternebel.YaSB
         private void Application_ApplicationExit(object? sender, EventArgs e)
         {
             Model.WebSocketClient.Dispose();
+            if (Model.IsDeleteVariablesOnExit) Model.DeleteVariables();
         }
 
         public override void OpenConfigurator()

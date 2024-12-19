@@ -31,6 +31,7 @@
             verticalTabControl1 = new SuchByte.MacroDeck.GUI.CustomControls.VerticalTabControl();
             tabPage1 = new TabPage();
             roundedPanel3 = new SuchByte.MacroDeck.GUI.CustomControls.RoundedPanel();
+            checkBox3 = new CheckBox();
             buttonPrimary1 = new SuchByte.MacroDeck.GUI.CustomControls.ButtonPrimary();
             checkBox2 = new CheckBox();
             label8 = new Label();
@@ -93,12 +94,23 @@
             // roundedPanel3
             // 
             roundedPanel3.BackColor = Color.FromArgb(33, 33, 33);
+            roundedPanel3.Controls.Add(checkBox3);
             roundedPanel3.Controls.Add(buttonPrimary1);
             roundedPanel3.Controls.Add(checkBox2);
             roundedPanel3.Location = new Point(67, 304);
             roundedPanel3.Name = "roundedPanel3";
             roundedPanel3.Size = new Size(600, 100);
             roundedPanel3.TabIndex = 5;
+            // 
+            // checkBox3
+            // 
+            checkBox3.AutoSize = true;
+            checkBox3.Location = new Point(20, 25);
+            checkBox3.Name = "checkBox3";
+            checkBox3.Size = new Size(159, 20);
+            checkBox3.TabIndex = 2;
+            checkBox3.Text = "Delete variables on exit";
+            checkBox3.UseVisualStyleBackColor = true;
             // 
             // buttonPrimary1
             // 
@@ -110,7 +122,7 @@
             buttonPrimary1.ForeColor = Color.DarkGray;
             buttonPrimary1.HoverColor = Color.Empty;
             buttonPrimary1.Icon = null;
-            buttonPrimary1.Location = new Point(40, 35);
+            buttonPrimary1.Location = new Point(37, 51);
             buttonPrimary1.Name = "buttonPrimary1";
             buttonPrimary1.Progress = 0;
             buttonPrimary1.ProgressColor = Color.FromArgb(0, 103, 205);
@@ -124,7 +136,7 @@
             // checkBox2
             // 
             checkBox2.AutoSize = true;
-            checkBox2.Location = new Point(19, 43);
+            checkBox2.Location = new Point(20, 59);
             checkBox2.Name = "checkBox2";
             checkBox2.Size = new Size(15, 14);
             checkBox2.TabIndex = 0;
@@ -391,5 +403,6 @@
         private Label label8;
         private SuchByte.MacroDeck.GUI.CustomControls.ButtonPrimary buttonPrimary1;
         private CheckBox checkBox2;
+        private CheckBox checkBox3;
     }
 }
