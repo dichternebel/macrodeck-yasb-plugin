@@ -4,6 +4,7 @@
     {
         Unknown,
         Hello,
+        Authentication,
         Actions,
         Events,
         Globals,

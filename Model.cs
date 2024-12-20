@@ -277,18 +277,29 @@ namespace dichternebel.YaSB
             switch (message.ResponseType)
             {
                 case ResponseType.Hello:
-                    this.StreamerBotInfo = message.Info;
-                    this.StreamerAuthentication = message.Authentication;
-                    if (WebSocketAuthenticationEnabled)
+                    StreamerBotInfo = message.Info;
+                    StreamerAuthentication = message.Authentication;
+                    if (WebSocketAuthenticationEnabled && StreamerAuthentication != null)
                     {
                         WebSocketClient.AuthenticateAsync(WebSocketPassword, StreamerAuthentication.Salt, StreamerAuthentication.Challenge).Wait();
                     }
+                    else
+                    {
+                        IsConnectedToStreamerBot = true;
+                        WebSocketClient.GetEventsAsync().Wait();
+                        WebSocketClient.GetActionsAsync().Wait();
+                    }
+                    break;
+                case ResponseType.Authentication:
+                    IsConnectedToStreamerBot = true;
+                    WebSocketClient.GetEventsAsync().Wait();
+                    WebSocketClient.GetActionsAsync().Wait();
                     break;
                 case ResponseType.Actions:
-                    this.StreamerBotActions = message.Actions;
+                    StreamerBotActions = message.Actions;
                     break;
                 case ResponseType.Events:
-                    this.StreamerBotEvents = message.Events;
+                    StreamerBotEvents = message.Events;
                     // Now that we have all available events subsribe to the selected ones
                     WebSocketClient.SubscribeToServerAsync().Wait();
                     WebSocketClient.GetGlobalsAsync().Wait();
@@ -302,6 +313,7 @@ namespace dichternebel.YaSB
                     SetVariable(botEvent);
                     break;
                 default:
+                    //MacroDeckLogger.Trace(Main.Instance,$"Raw message:\n{message.RawMessage}");
                     break;
             }
         }

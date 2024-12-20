@@ -157,7 +157,6 @@
             roundedPanel2.Controls.Add(textBoxPassword);
             roundedPanel2.Controls.Add(checkBox1);
             roundedPanel2.Controls.Add(label7);
-            roundedPanel2.Enabled = false;
             roundedPanel2.Location = new Point(67, 166);
             roundedPanel2.Name = "roundedPanel2";
             roundedPanel2.Size = new Size(600, 100);
@@ -206,12 +205,11 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Enabled = false;
             label2.Location = new Point(67, 147);
             label2.Name = "label2";
-            label2.Size = new Size(177, 16);
+            label2.Size = new Size(138, 16);
             label2.TabIndex = 2;
-            label2.Text = "ToDo: Authentication Settings";
+            label2.Text = "Authentication Settings";
             // 
             // label1
             // 

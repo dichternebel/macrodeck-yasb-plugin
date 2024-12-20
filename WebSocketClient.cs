@@ -13,6 +13,10 @@ namespace dichternebel.YaSB
         private string _serverUrl;
         private readonly CancellationTokenSource _cts;
 
+        private string AuthenticationMessage { get; set; }
+
+        public bool IsAuthenticated { get; private set; }
+
         public static WebSocketClient Instance { get; private set; }
 
         public WebSocketClient(string serverUrl)
@@ -35,9 +39,9 @@ namespace dichternebel.YaSB
 
                         if (_webSocket.State != WebSocketState.Open)
                         {
+                            IsAuthenticated = false;
+                            Main.Model.IsConnectedToStreamerBot = false;
                             await ConnectToServerAsync();
-                            await GetEventsAsync();
-                            await GetActionsAsync();
                        }
                     }
                     catch (Exception ex)
@@ -66,24 +70,22 @@ namespace dichternebel.YaSB
                 _webSocket = new ClientWebSocket();
             }
 
+            MacroDeckLogger.Info(Main.Instance, "Connecting to WebSocket server...");
             await _webSocket.ConnectAsync(new Uri(_serverUrl), _cts.Token);
-            Main.Model.IsConnectedToStreamerBot = true;
-            MacroDeckLogger.Info(Main.Instance, "Connected to WebSocket server.");
         }
 
-        private async Task GetEventsAsync()
+        public async Task GetEventsAsync()
         {
             try
             {
                 var request = new
                 {
                     request = RequestType.GetEvents.ToString(),
-                    id = "dichternebel-yasb-get-events"
+                    id = "dichternebel-yasb-get-events",
+                    authentication = IsAuthenticated ? AuthenticationMessage : null
                 };
-                string payload = JsonSerializer.Serialize(request, new JsonSerializerOptions
-                {
-                    WriteIndented = false
-                });
+
+                string payload = JsonSerializer.Serialize(request);
 
                 var bytes = Encoding.UTF8.GetBytes(payload);
                 await _webSocket.SendAsync(
@@ -100,19 +102,18 @@ namespace dichternebel.YaSB
             }
         }
 
-        private async Task GetActionsAsync()
+        public async Task GetActionsAsync()
         {
             try
             {
                 var request = new
                 {
                     request = RequestType.GetActions.ToString(),
-                    id = "dichternebel-yasb-get-actions"
+                    id = "dichternebel-yasb-get-actions",
+                    authentication = IsAuthenticated ? AuthenticationMessage : null
                 };
-                string payload = JsonSerializer.Serialize(request, new JsonSerializerOptions
-                {
-                    WriteIndented = false
-                });
+
+                string payload = JsonSerializer.Serialize(request);
 
                 var bytes = Encoding.UTF8.GetBytes(payload);
                 await _webSocket.SendAsync(
@@ -140,13 +141,11 @@ namespace dichternebel.YaSB
                 {
                     request = RequestType.UnSubscribe.ToString(),
                     id = "dichternebel-yasb-unsubscribe",
-                    events = eventsDictionary
+                    events = eventsDictionary,
+                    authentication = IsAuthenticated ? AuthenticationMessage : null
                 };
 
-                string payload = JsonSerializer.Serialize(request, new JsonSerializerOptions
-                {
-                    WriteIndented = false
-                });
+                string payload = JsonSerializer.Serialize(request);
 
                 var bytes = Encoding.UTF8.GetBytes(payload);
                 await _webSocket.SendAsync(
@@ -173,13 +172,11 @@ namespace dichternebel.YaSB
                 {
                     request = RequestType.Subscribe.ToString(),
                     id = "dichternebel-yasb-subscribe",
-                    events = eventsDictionary
+                    events = eventsDictionary,
+                    authentication = IsAuthenticated ? AuthenticationMessage : null
                 };
 
-                string payload = JsonSerializer.Serialize(request, new JsonSerializerOptions
-                {
-                    WriteIndented = false
-                });
+                string payload = JsonSerializer.Serialize(request);
 
                 var bytes = Encoding.UTF8.GetBytes(payload);
                 await _webSocket.SendAsync(
@@ -201,7 +198,8 @@ namespace dichternebel.YaSB
             {
                 request = RequestType.GetGlobals.ToString(),
                 id = "dichternebel-yasb-get-globals",
-                persisted
+                persisted,
+                authentication = IsAuthenticated ? AuthenticationMessage : null
             };
 
             string payload = JsonSerializer.Serialize(request, new JsonSerializerOptions
@@ -307,6 +305,26 @@ namespace dichternebel.YaSB
                 }
 
                 return new ResponseMessage { ResponseType = ResponseType.Hello, Info = info };
+            }
+
+            // Check if it's an authentication response
+            if (root.TryGetProperty("id", out var authIdentifierElement))
+            {
+                var identifier = JsonSerializer.Deserialize<string>(authIdentifierElement.GetRawText());
+                if (identifier == "dichternebel-yasb-authentication")
+                {
+                    if (root.TryGetProperty("status", out var statusElement))
+                    {
+                        var status = JsonSerializer.Deserialize<string>(statusElement.GetRawText());
+                        IsAuthenticated = status == "ok";
+                    }
+                    else
+                    {
+                        IsAuthenticated = false;
+                    }
+
+                    return new ResponseMessage { ResponseType = ResponseType.Authentication };
+                }
             }
 
             // Check if it's a get action list response
@@ -453,31 +471,22 @@ namespace dichternebel.YaSB
             await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Switching host", _cts.Token);
         }
 
-        // ToDo: getting { "error": "malformed command" }
-        // No idea how to authenticate against Streamer.Bot, couldn't find any examples
         public async Task AuthenticateAsync(string password, string salt, string challenge)
         {
-            // Combine the password, salt, and challenge
-            var combined = password + salt + challenge;
+            // Compute SHA-256 hash of password and salt
+            string secret = ComputeSha256Hash($"{password}{salt}");
 
-            MacroDeckLogger.Info(Main.Instance, combined);
-
-            // Hash the combined string using SHA256
-            using var sha256 = SHA256.Create();
-            var shaBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(combined));
-            var responseMessage = Convert.ToHexString(shaBytes);
+            // Compute SHA-256 hash of secret and challenge
+            AuthenticationMessage = ComputeSha256Hash($"{secret}{challenge}");
 
             var request = new
             {
                 request = RequestType.Authenticate.ToString(),
-                responseMessage
+                id = "dichternebel-yasb-authentication",
+                authentication = AuthenticationMessage
             };
 
-            string payload = JsonSerializer.Serialize(request, new JsonSerializerOptions
-            {
-                WriteIndented = false
-            });
-
+            string payload = JsonSerializer.Serialize(request);
             var bytes = Encoding.UTF8.GetBytes(payload);
             await _webSocket.SendAsync(
                 new ArraySegment<byte>(bytes),
@@ -486,6 +495,15 @@ namespace dichternebel.YaSB
                 _cts.Token);
 
             MacroDeckLogger.Info(Main.Instance, "Authentication request sent successfully.");
+        }
+
+        private static string ComputeSha256Hash(string input)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+                return Convert.ToBase64String(bytes);
+            }
         }
 
         public void Dispose()
