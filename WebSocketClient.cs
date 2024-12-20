@@ -38,8 +38,7 @@ namespace dichternebel.YaSB
                             await ConnectToServerAsync();
                             await GetEventsAsync();
                             await GetActionsAsync();
-                            //await SubscribeToServerAsync();
-                        }
+                       }
                     }
                     catch (Exception ex)
                     {
@@ -168,7 +167,6 @@ namespace dichternebel.YaSB
             try
             {
                 var eventsDictionary = Main.Model?.ConfiguredEvents;
-
                 if (eventsDictionary == null || !eventsDictionary.Any()) return;
 
                 var request = new
@@ -194,6 +192,55 @@ namespace dichternebel.YaSB
             catch (Exception ex)
             {
                 MacroDeckLogger.Warning(Main.Instance, $"Failed to subscribe to WebSocket server: {ex.Message}");
+            }
+        }
+
+        private async Task GetGlobalsAsync(bool persisted)
+        {
+            var request = new
+            {
+                request = RequestType.GetGlobals.ToString(),
+                id = "dichternebel-yasb-get-globals",
+                persisted
+            };
+
+            string payload = JsonSerializer.Serialize(request, new JsonSerializerOptions
+            {
+                WriteIndented = false
+            });
+
+            var bytes = Encoding.UTF8.GetBytes(payload);
+            await _webSocket.SendAsync(
+                new ArraySegment<byte>(bytes),
+                WebSocketMessageType.Text,
+                true,
+                _cts.Token);
+
+            MacroDeckLogger.Info(Main.Instance, $"GetGlobals request sent successfully:\n{payload}");
+        }
+
+        public async Task GetGlobalsAsync()
+        {
+            try
+            {
+                var eventsDictionary = Main.Model?.ConfiguredEvents;
+                if (eventsDictionary == null || !eventsDictionary.Any()) return;
+
+                if (eventsDictionary.TryGetValue("Misc", out string[] miscEvents))
+                {
+                    if (!miscEvents.Contains("GlobalVariableUpdated")) return;
+                }
+                else
+                {
+                    return;
+                }
+
+                await GetGlobalsAsync(true);
+                await GetGlobalsAsync(false);
+            }
+            catch (Exception ex)
+            {
+                MacroDeckLogger.Warning(Main.Instance, $"Failed to GetGlobals from WebSocket server: {ex.Message}");
             }
         }
 
@@ -238,7 +285,7 @@ namespace dichternebel.YaSB
                 jsonDocument,
                 new JsonSerializerOptions { WriteIndented = true }
             );
-            MacroDeckLogger.Trace(Main.Instance, $"Received message:\n{prettyJson}");
+            //MacroDeckLogger.Trace(Main.Instance, $"Received message:\n{prettyJson}");
 
             var root = jsonDocument.RootElement;
 
@@ -262,7 +309,7 @@ namespace dichternebel.YaSB
                 return new ResponseMessage { ResponseType = ResponseType.Hello, Info = info };
             }
 
-            // Check if it's an get action list response
+            // Check if it's a get action list response
             if (root.TryGetProperty("actions", out var actionsElement))
             {
                 if (root.TryGetProperty("id", out var identifierElement))
@@ -276,7 +323,7 @@ namespace dichternebel.YaSB
                 }
             }
 
-            // Check if it's an get event list response
+            // Check if it's a get event list response
             if (root.TryGetProperty("events", out var eventsElement))
             {
                 if (root.TryGetProperty("id", out var identifierElement))
@@ -286,6 +333,42 @@ namespace dichternebel.YaSB
                     {
                         var eventDictionary = JsonSerializer.Deserialize<Dictionary<string, string[]>>(eventsElement.GetRawText(), options);
                         return new ResponseMessage { ResponseType = ResponseType.Events, Events = eventDictionary, RawMessage = prettyJson };
+                    }
+                }
+            }
+
+            // Check if it's a get globals response
+            if (root.TryGetProperty("variables", out var globalsElement))
+            {
+                if (root.TryGetProperty("id", out var identifierElement))
+                {
+                    var identifier = JsonSerializer.Deserialize<string>(identifierElement.GetRawText());
+                    if (identifier == "dichternebel-yasb-get-globals")
+                    {
+                        var globalDictionary = JsonSerializer.Deserialize<Dictionary<string, object>>(globalsElement.GetRawText(), options);
+
+                        var eventInfo = new StreamerBot.EventInfo();
+                        eventInfo.Source = "Misc";
+                        eventInfo.Type = "GlobalVariableUpdated";
+
+                        var eventData = new EventData
+                        {
+                            KeyValuePairs = new Dictionary<string, object>()
+                        };
+                        foreach (var item in globalDictionary)
+                        {
+                            eventData.KeyValuePairs.Add(item.Key, item.Value);
+                        }
+
+                        return new ResponseMessage
+                        {
+                            ResponseType = ResponseType.Globals,
+                            Event = new BotEvent
+                            {
+                                EventInfo = eventInfo,
+                                Data = eventData
+                            }
+                        };
                     }
                 }
             }

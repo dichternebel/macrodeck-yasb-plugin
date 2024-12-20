@@ -6,6 +6,7 @@
         Hello,
         Actions,
         Events,
+        Globals,
         Event
     }
 }

@@ -5,7 +5,6 @@ using SuchByte.MacroDeck.Logging;
 using SuchByte.MacroDeck.Plugins;
 using SuchByte.MacroDeck.Variables;
 using dichternebel.YaSB.StreamerBot;
-using dichternebel.YaSB.MacroDeckPlug;
 using System.Text.Json;
 
 namespace dichternebel.YaSB
@@ -292,6 +291,11 @@ namespace dichternebel.YaSB
                     this.StreamerBotEvents = message.Events;
                     // Now that we have all available events subsribe to the selected ones
                     WebSocketClient.SubscribeToServerAsync().Wait();
+                    WebSocketClient.GetGlobalsAsync().Wait();
+                    break;
+                case ResponseType.Globals:
+                    var globalVars = message.Event;
+                    SetVariables(globalVars);
                     break;
                 case ResponseType.Event:
                     var botEvent = message.Event;
@@ -307,24 +311,44 @@ namespace dichternebel.YaSB
             // I guess this is how the Steamer.Bot Plugin would make it so I keep it here for compatability
             if (currentEvent.EventInfo.Source == "General" && currentEvent.EventInfo.Type == "Custom")
             {
-                var currentType = currentEvent.Data.KeyValuePairs.First().Value.GetType();
+                var value = currentEvent.Data.KeyValuePairs.First().Value;
+                var currentType = GetValueType(value);
                 VariableType variableType = TypeMapping.TryGetValue(currentType, out var type) ? type : VariableType.String;
-                VariableManager.SetValue($"{currentEvent.EventInfo.Type}_{currentEvent.Data.KeyValuePairs.First().Key}", currentEvent.Data.KeyValuePairs.First().Value, variableType, Main.Instance, new string[] { currentEvent.EventInfo.Type });
+                VariableManager.SetValue($"{currentEvent.EventInfo.Type}_{currentEvent.Data.KeyValuePairs.First().Key}", currentEvent.Data.KeyValuePairs.First().Value, variableType, Main.Instance, []);
                 return;
             }
             // Doing the same with global variables to make switch easier
             if (currentEvent.EventInfo.Source == "Misc" && currentEvent.EventInfo.Type == "GlobalVariableUpdated")
             {
-                var currentType = currentEvent.Data.KeyValuePairs["newValue"].GetType();
+                var value = currentEvent.Data.KeyValuePairs["newValue"];
+                var currentType = GetValueType(value);
+
                 VariableType variableType = TypeMapping.TryGetValue(currentType, out var type) ? type : VariableType.String;
-                VariableManager.SetValue($"{currentEvent.EventInfo.Type}_{currentEvent.Data.KeyValuePairs["name"]}", currentEvent.Data.KeyValuePairs["newValue"], variableType, Main.Instance, new string[] { currentEvent.EventInfo.Type });
+                VariableManager.SetValue($"{currentEvent.EventInfo.Type}_{currentEvent.Data.KeyValuePairs["name"]}", currentEvent.Data.KeyValuePairs["newValue"], variableType, Main.Instance, []);
                 return;
             }
             
             // I expect that data is something, so I will store a string for now to keep it simple
-            foreach(var kvp in currentEvent.Data.KeyValuePairs)
+            foreach(var keyValuePair in currentEvent.Data.KeyValuePairs)
             {
-                VariableManager.SetValue($"{currentEvent.EventInfo.Source}_{currentEvent.EventInfo.Type}", kvp.Value, VariableType.String, Main.Instance, new string[] { kvp.Key });
+                VariableManager.SetValue($"{currentEvent.EventInfo.Source}_{currentEvent.EventInfo.Type}", keyValuePair.Value, VariableType.String, Main.Instance, []);
+            }
+        }
+
+        private void SetVariables(BotEvent globalsEvent)
+        {
+            foreach (var item in globalsEvent.Data.KeyValuePairs)
+            {
+                var currentBotEvent = JsonSerializer.Deserialize<BotEvent>(JsonSerializer.Serialize(globalsEvent));
+                if (currentBotEvent == null) continue;
+
+                var dynamicObject = JsonSerializer.Deserialize<dynamic>(item.Value.ToString());
+                currentBotEvent.Data.KeyValuePairs = new Dictionary<string, object>
+                {
+                    { "name", item.Key },
+                    { "newValue", dynamicObject.GetProperty("value") }
+                };
+                SetVariable(currentBotEvent);
             }
         }
 
@@ -335,6 +359,19 @@ namespace dichternebel.YaSB
             {
                 VariableManager.DeleteVariable(pluginVariable.Name);
             }
+        }
+
+        private Type GetValueType(object value)
+        {
+            if (value == null) return typeof(string);
+
+            if (int.TryParse(value.ToString(), out _)) return typeof(int);
+            if (decimal.TryParse(value.ToString(), out _)) return typeof(decimal);
+            if (float.TryParse(value.ToString(), out _)) return typeof(float);
+            if (double.TryParse(value.ToString(), out _)) return typeof(double);
+            if (bool.TryParse(value.ToString(), out _)) return typeof(bool);
+
+            return typeof(string);
         }
 
         private static readonly Dictionary<Type, VariableType> TypeMapping = new()
