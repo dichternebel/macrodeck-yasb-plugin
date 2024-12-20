@@ -443,7 +443,6 @@ namespace dichternebel.YaSB
         {
             SaveEvent("General_Custom", true);
             SaveEvent("Misc_GlobalVariableUpdated", true);
-            SaveEvent("Misc_UserGlobalVariableUpdated", true);
             IsConfigured = true;
         }
 
