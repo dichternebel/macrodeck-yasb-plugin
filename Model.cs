@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using SuchByte.MacroDeck.GUI.CustomControls;
 using SuchByte.MacroDeck.Logging;
 using SuchByte.MacroDeck.Plugins;
 using SuchByte.MacroDeck.Variables;
 using dichternebel.YaSB.StreamerBot;
-using System.Text.Json;
 
 namespace dichternebel.YaSB
 {
@@ -62,14 +62,14 @@ namespace dichternebel.YaSB
             }
         }
 
-        private Authentication _streamerAuthentication;
-        public Authentication StreamerAuthentication
+        private Authentication _streamerBotAuthentication;
+        public Authentication StreamerBotAuthentication
         {
-            get => _streamerAuthentication;
+            get => _streamerBotAuthentication;
             set
             {
-                if (value == _streamerAuthentication) return;
-                _streamerAuthentication = value;
+                if (value == _streamerBotAuthentication) return;
+                _streamerBotAuthentication = value;
                 OnPropertyChanged();
             }
         }
@@ -248,7 +248,6 @@ namespace dichternebel.YaSB
             }
         }
 
-
         public Model()
         {
             _isConnectedToStreamerBot = false;
@@ -278,10 +277,10 @@ namespace dichternebel.YaSB
             {
                 case ResponseType.Hello:
                     StreamerBotInfo = message.Info;
-                    StreamerAuthentication = message.Authentication;
-                    if (WebSocketAuthenticationEnabled && StreamerAuthentication != null)
+                    StreamerBotAuthentication = message.Authentication;
+                    if (WebSocketAuthenticationEnabled && StreamerBotAuthentication != null)
                     {
-                        WebSocketClient.AuthenticateAsync(WebSocketPassword, StreamerAuthentication.Salt, StreamerAuthentication.Challenge).Wait();
+                        WebSocketClient.AuthenticateAsync(WebSocketPassword, StreamerBotAuthentication.Salt, StreamerBotAuthentication.Challenge).Wait();
                     }
                     else
                     {
@@ -302,6 +301,7 @@ namespace dichternebel.YaSB
                     StreamerBotEvents = message.Events;
                     // Now that we have all available events subsribe to the selected ones
                     WebSocketClient.SubscribeToServerAsync().Wait();
+                    // And get the Streamer.Bot global variables
                     WebSocketClient.GetGlobalsAsync().Wait();
                     break;
                 case ResponseType.Globals:
@@ -431,10 +431,20 @@ namespace dichternebel.YaSB
         public void SaveEvent(string eventIdentifier, bool value)
         {
             PluginConfiguration.SetValue(Main.Instance, eventIdentifier, value.ToString());
-            
-            // Intentionally not awaited!
-            if (value) WebSocketClient.SubscribeToServerAsync();
-            else WebSocketClient.UnSubscribeFromServerAsync(eventIdentifier);
+           
+            if (value) WebSocketClient.SubscribeToServerAsync().Wait();
+            else WebSocketClient.UnSubscribeFromServerAsync(eventIdentifier).Wait();
+        }
+
+        public void SaveEvents(List<string> eventList, bool value)
+        {
+            foreach (var eventIdentifier in eventList)
+            {
+                PluginConfiguration.SetValue(Main.Instance, eventIdentifier, value.ToString());
+                if (!value) WebSocketClient.UnSubscribeFromServerAsync(eventIdentifier).Wait();
+            }
+
+            if (value) WebSocketClient.SubscribeToServerAsync().Wait();
         }
 
         public void ResetConfiguration()

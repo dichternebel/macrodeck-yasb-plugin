@@ -1,9 +1,9 @@
 ﻿using System.Net.WebSockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using SuchByte.MacroDeck.Logging;
 using dichternebel.YaSB.StreamerBot;
-using System.Security.Cryptography;
 
 namespace dichternebel.YaSB
 {

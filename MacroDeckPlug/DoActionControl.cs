@@ -85,10 +85,7 @@ namespace dichternebel.YaSB.MacroDeckPlug
             config.streamerBotActionName = roundedTextBoxActionName.Text;
             config.streamerBotActionArgument = roundedTextBoxArgument.Text;
 
-            string configJson = JsonSerializer.Serialize(config, new JsonSerializerOptions
-            {
-                WriteIndented = false
-            });
+            string configJson = JsonSerializer.Serialize(config);
 
             this._macroDeckAction.ConfigurationSummary = $":: {roundedTextBoxActionName.Text} :: {roundedTextBoxArgument.Text}";
             this._macroDeckAction.Configuration = configJson.ToString();

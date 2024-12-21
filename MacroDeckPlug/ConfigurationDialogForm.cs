@@ -129,11 +129,14 @@ namespace dichternebel.YaSB.MacroDeckPlug
             else
             {
                 // Root node was checked/unchecked - update children
+                var eventList = new List<string>();
                 foreach (TreeNode child in e.Node.Nodes)
                 {
                     child.Checked = e.Node.Checked;
-                    Model.SaveEvent(Helper.CreateEventKey(child.Parent.Text, child.Text), e.Node.Checked);
+                    //Model.SaveEvent(Helper.CreateEventKey(child.Parent.Text, child.Text), e.Node.Checked);
+                    eventList.Add(Helper.CreateEventKey(child.Parent.Text, child.Text));
                 }
+                Model.SaveEvents(eventList, e.Node.Checked);
             }
         }
 
