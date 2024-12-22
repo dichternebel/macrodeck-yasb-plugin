@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using SuchByte.MacroDeck.GUI.CustomControls;
 using SuchByte.MacroDeck.Logging;
 using SuchByte.MacroDeck.Plugins;
 using SuchByte.MacroDeck.Variables;
@@ -24,15 +23,10 @@ namespace dichternebel.YaSB
                 _isConnectedToStreamerBot = value;
                 if (value)
                 {
-                    Button.BackgroundImage = Properties.Resources.streamerbot_logo_white_checked;
                     if (!IsConfigured)
                     {
                         SetDefaultEvents();
                     }
-                }
-                else
-                {
-                    Button.BackgroundImage = Properties.Resources.streamerbot_logo_white_error;
                 }
                 OnPropertyChanged();
             }
@@ -128,9 +122,9 @@ namespace dichternebel.YaSB
 
                 return configuredEvents;
             }
-        } 
+        }
 
-        public ContentSelectorButton Button { get; set; }
+
 
         public bool IsConfigured
         {
@@ -296,13 +290,6 @@ namespace dichternebel.YaSB
         public Model()
         {
             _isConnectedToStreamerBot = false;
-
-            Button = new ContentSelectorButton
-            {
-                BackgroundImageLayout = ImageLayout.Stretch,
-                BackgroundImage = Properties.Resources.streamerbot_logo_white
-            };
-
             PropertyChanged += HandleOnPropertyChanged;
             Transformations.ListChanged += Transformations_ListChanged;
         }

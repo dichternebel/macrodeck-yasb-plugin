@@ -1,7 +1,7 @@
 ﻿using SuchByte.MacroDeck;
-using SuchByte.MacroDeck.GUI;
 using SuchByte.MacroDeck.Plugins;
 using dichternebel.YaSB.MacroDeckPlug;
+using SuchByte.MacroDeck.GUI.CustomControls;
 
 namespace dichternebel.YaSB
 {
@@ -9,12 +9,28 @@ namespace dichternebel.YaSB
     {
         public static Main Instance { get; private set; }
         public static Model Model { get; private set; }
-        public static bool IsButtonDisplayed { get; private set; }
+        public ContentSelectorButton Button { get; private set; }
 
         public Main()
         {
             Instance ??= this;
+            Button = new ContentSelectorButton
+            {
+                BackgroundImageLayout = ImageLayout.Stretch,
+                BackgroundImage = Properties.Resources.streamerbot_logo_white
+            };
             Model = new Model();
+            Model.PropertyChanged += Model_PropertyChanged;
+        }
+
+        private void Model_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Model.IsConnectedToStreamerBot))
+            {
+                Button.BackgroundImage = Model.IsConnectedToStreamerBot
+                    ? Properties.Resources.streamerbot_logo_white_checked
+                    : Properties.Resources.streamerbot_logo_white_error;
+            }
         }
 
         public override bool CanConfigure => true;
@@ -34,16 +50,29 @@ namespace dichternebel.YaSB
 
         private void DisplayButton()
         {
-            if (IsButtonDisplayed || MacroDeck.MainWindow == null) return;
-            MacroDeck.MainWindow.contentButtonPanel.Controls.Add(Model.Button);
-            Model.Button.Click += ModelButton_Click;
-            IsButtonDisplayed = true;
+            if (MacroDeck.MainWindow == null) return;
+
+            // When closing the main window Button is disposed
+            if (Button == null || Button.IsDisposed)
+            {
+                Button = new ContentSelectorButton
+                {
+                    BackgroundImageLayout = ImageLayout.Stretch,
+                    BackgroundImage = Model.IsConnectedToStreamerBot
+                    ? Properties.Resources.streamerbot_logo_white_checked
+                    : Properties.Resources.streamerbot_logo_white
+                };
+            }
+
+            if (!MacroDeck.MainWindow.contentButtonPanel.Controls.Contains(Button))
+            {
+                MacroDeck.MainWindow.contentButtonPanel.Controls.Add(Button);
+                Button.Click += ModelButton_Click;
+            }
         }
 
         private void MacroDeck_OnMainWindowLoad(object? sender, EventArgs e)
         {
-            var mainWindow = sender as MainWindow;
-            if (mainWindow == null) return;
             DisplayButton();
         }
 
