@@ -36,6 +36,7 @@
             checkBox2 = new CheckBox();
             label8 = new Label();
             roundedPanel2 = new SuchByte.MacroDeck.GUI.CustomControls.RoundedPanel();
+            linkLabel1 = new LinkLabel();
             textBoxPassword = new SuchByte.MacroDeck.GUI.CustomControls.RoundedTextBox();
             checkBox1 = new CheckBox();
             label7 = new Label();
@@ -49,14 +50,17 @@
             label4 = new Label();
             label3 = new Label();
             tabPage2 = new TabPage();
+            tableLayoutPanel1 = new TableLayoutPanel();
             label6 = new Label();
             treeView1 = new TreeView();
+            tabPage3 = new TabPage();
             verticalTabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             roundedPanel3.SuspendLayout();
             roundedPanel2.SuspendLayout();
             roundedPanel1.SuspendLayout();
             tabPage2.SuspendLayout();
+            tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
             // verticalTabControl1
@@ -64,8 +68,9 @@
             verticalTabControl1.Alignment = TabAlignment.Left;
             verticalTabControl1.Controls.Add(tabPage1);
             verticalTabControl1.Controls.Add(tabPage2);
+            verticalTabControl1.Controls.Add(tabPage3);
             verticalTabControl1.Dock = DockStyle.Fill;
-            verticalTabControl1.ItemSize = new Size(221, 60);
+            verticalTabControl1.ItemSize = new Size(65, 60);
             verticalTabControl1.Location = new Point(1, 1);
             verticalTabControl1.Multiline = true;
             verticalTabControl1.Name = "verticalTabControl1";
@@ -89,7 +94,7 @@
             tabPage1.Padding = new Padding(3);
             tabPage1.Size = new Size(730, 440);
             tabPage1.TabIndex = 0;
-            tabPage1.Text = "Config";
+            tabPage1.Text = "Settings";
             // 
             // roundedPanel3
             // 
@@ -154,6 +159,7 @@
             // roundedPanel2
             // 
             roundedPanel2.BackColor = Color.FromArgb(33, 33, 33);
+            roundedPanel2.Controls.Add(linkLabel1);
             roundedPanel2.Controls.Add(textBoxPassword);
             roundedPanel2.Controls.Add(checkBox1);
             roundedPanel2.Controls.Add(label7);
@@ -161,6 +167,22 @@
             roundedPanel2.Name = "roundedPanel2";
             roundedPanel2.Size = new Size(600, 100);
             roundedPanel2.TabIndex = 3;
+            // 
+            // linkLabel1
+            // 
+            linkLabel1.ActiveLinkColor = Color.White;
+            linkLabel1.AutoSize = true;
+            linkLabel1.Cursor = Cursors.Hand;
+            linkLabel1.Font = new Font("Tahoma", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            linkLabel1.LinkBehavior = LinkBehavior.NeverUnderline;
+            linkLabel1.LinkColor = Color.White;
+            linkLabel1.Location = new Point(342, 56);
+            linkLabel1.Name = "linkLabel1";
+            linkLabel1.Size = new Size(32, 23);
+            linkLabel1.TabIndex = 4;
+            linkLabel1.TabStop = true;
+            linkLabel1.Text = "👁";
+            linkLabel1.VisitedLinkColor = Color.White;
             // 
             // textBoxPassword
             // 
@@ -324,8 +346,7 @@
             // tabPage2
             // 
             tabPage2.BackColor = Color.Transparent;
-            tabPage2.Controls.Add(label6);
-            tabPage2.Controls.Add(treeView1);
+            tabPage2.Controls.Add(tableLayoutPanel1);
             tabPage2.ForeColor = Color.White;
             tabPage2.Location = new Point(64, 4);
             tabPage2.Name = "tabPage2";
@@ -334,10 +355,25 @@
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Events";
             // 
+            // tableLayoutPanel1
+            // 
+            tableLayoutPanel1.ColumnCount = 1;
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanel1.Controls.Add(label6, 0, 0);
+            tableLayoutPanel1.Controls.Add(treeView1, 0, 1);
+            tableLayoutPanel1.Dock = DockStyle.Fill;
+            tableLayoutPanel1.Location = new Point(3, 3);
+            tableLayoutPanel1.Name = "tableLayoutPanel1";
+            tableLayoutPanel1.RowCount = 2;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle());
+            tableLayoutPanel1.Size = new Size(724, 434);
+            tableLayoutPanel1.TabIndex = 2;
+            // 
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(28, 6);
+            label6.Location = new Point(3, 0);
             label6.Name = "label6";
             label6.Size = new Size(171, 16);
             label6.TabIndex = 1;
@@ -346,14 +382,26 @@
             // treeView1
             // 
             treeView1.BackColor = Color.FromArgb(64, 64, 64);
+            treeView1.Dock = DockStyle.Fill;
             treeView1.Font = new Font("Tahoma", 11F);
             treeView1.ForeColor = Color.White;
             treeView1.Indent = 24;
             treeView1.ItemHeight = 24;
-            treeView1.Location = new Point(29, 30);
+            treeView1.Location = new Point(3, 23);
             treeView1.Name = "treeView1";
-            treeView1.Size = new Size(695, 404);
+            treeView1.Size = new Size(718, 415);
             treeView1.TabIndex = 0;
+            // 
+            // tabPage3
+            // 
+            tabPage3.BackColor = Color.Transparent;
+            tabPage3.ForeColor = Color.White;
+            tabPage3.Location = new Point(64, 4);
+            tabPage3.Name = "tabPage3";
+            tabPage3.Padding = new Padding(3);
+            tabPage3.Size = new Size(730, 440);
+            tabPage3.TabIndex = 2;
+            tabPage3.Text = "f(x)";
             // 
             // ConfigurationDialogForm
             // 
@@ -373,7 +421,8 @@
             roundedPanel1.ResumeLayout(false);
             roundedPanel1.PerformLayout();
             tabPage2.ResumeLayout(false);
-            tabPage2.PerformLayout();
+            tableLayoutPanel1.ResumeLayout(false);
+            tableLayoutPanel1.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -382,6 +431,7 @@
         private SuchByte.MacroDeck.GUI.CustomControls.VerticalTabControl verticalTabControl1;
         private TabPage tabPage1;
         private TabPage tabPage2;
+        private TabPage tabPage3;
         private SuchByte.MacroDeck.GUI.CustomControls.RoundedPanel roundedPanel2;
         private Label label2;
         private Label label1;
@@ -402,5 +452,7 @@
         private SuchByte.MacroDeck.GUI.CustomControls.ButtonPrimary buttonPrimary1;
         private CheckBox checkBox2;
         private CheckBox checkBox3;
+        private TableLayoutPanel tableLayoutPanel1;
+        private LinkLabel linkLabel1;
     }
 }

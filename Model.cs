@@ -6,6 +6,7 @@ using SuchByte.MacroDeck.Logging;
 using SuchByte.MacroDeck.Plugins;
 using SuchByte.MacroDeck.Variables;
 using dichternebel.YaSB.StreamerBot;
+using dichternebel.YaSB.MacroDeckPlug;
 
 namespace dichternebel.YaSB
 {
@@ -248,6 +249,50 @@ namespace dichternebel.YaSB
             }
         }
 
+        private List<YaSBTransformation> _transformations;
+        public BindingList<YaSBTransformation> Transformations
+        {
+            get
+            {
+                // Instantiate and fill list with current existing variables
+                _transformations = new List<YaSBTransformation>();
+                var existingVariables = VariableManager.GetVariables(Main.Instance);
+
+                foreach (var variable in existingVariables)
+                {
+                    var transformation = new YaSBTransformation
+                    {
+                        Variable = variable.Name,
+                        Value = variable.Value
+                    };
+                    _transformations.Add(transformation);
+                }
+
+                // Add existing transformations to the list
+                var existingTransformationsJson = PluginConfiguration.GetValue(Main.Instance, "YaSBTransformationList");
+
+                if (!string.IsNullOrEmpty(existingTransformationsJson))
+                {
+                    var existingTransformationsList = JsonSerializer.Deserialize<List<YaSBTransformation>>(existingTransformationsJson);
+
+                    foreach (var item in existingTransformationsList)
+                    {
+                        var existingVariable = _transformations.FirstOrDefault(x => x.Variable == item.Variable);
+                        if (existingVariable != null)
+                        {
+                            existingVariable.JsonKey = item.JsonKey;
+                        }
+                        else
+                        {
+                            _transformations.Add(item);
+                        }
+                    }
+                }
+
+                return new BindingList<YaSBTransformation>(_transformations);
+            }
+        }
+
         public Model()
         {
             _isConnectedToStreamerBot = false;
@@ -259,6 +304,16 @@ namespace dichternebel.YaSB
             };
 
             PropertyChanged += HandleOnPropertyChanged;
+            Transformations.ListChanged += Transformations_ListChanged;
+        }
+
+        private void Transformations_ListChanged(object? sender, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType == ListChangedType.ItemChanged)
+            {
+                MacroDeckLogger.Trace(Main.Instance, "TransformationList changed!");
+                SaveTransformations();
+            }
         }
 
         private void HandleOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -445,6 +500,20 @@ namespace dichternebel.YaSB
             }
 
             if (value) WebSocketClient.SubscribeToServerAsync().Wait();
+        }
+
+        public void SaveTransformations()
+        {
+            List<YaSBTransformation> transformationList = new List<YaSBTransformation>();
+
+            foreach (var item in this._transformations)
+            {
+                if (!string.IsNullOrEmpty(item.JsonKey)) transformationList.Add(item);
+            }
+
+            PluginConfiguration.SetValue(Main.Instance, "YaSBTransformationList", JsonSerializer.Serialize(transformationList));
+
+            // ToDo: Update variables to use the transformation value
         }
 
         public void ResetConfiguration()

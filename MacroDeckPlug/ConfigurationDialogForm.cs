@@ -1,9 +1,11 @@
 ﻿using SuchByte.MacroDeck.GUI.CustomControls;
+using System.Windows.Forms;
 
 namespace dichternebel.YaSB.MacroDeckPlug
 {
     public partial class ConfigurationDialogForm : DialogForm
     {
+        private TransformationsControl transformationsControl;
         private readonly BindingSource _bindingSource = new BindingSource();
 
         public Model Model
@@ -16,27 +18,22 @@ namespace dichternebel.YaSB.MacroDeckPlug
         {
             InitializeComponent();
             _bindingSource.DataSource = model;
-
             Model.PropertyChanged += Model_PropertyChanged;
 
-            // Add databindings to controls
+            // Add databindings to controls on Tab1
             textBoxAddress.DataBindings.Add("Text", _bindingSource, nameof(Model.WebSocketHost));
             textBoxPort.DataBindings.Add("Text", _bindingSource, nameof(Model.WebSocketPort));
             textBoxEndpoint.DataBindings.Add("Text", _bindingSource, nameof(Model.WebSocketEndpoint));
-
             // This is not workin and I don't know why...
             //checkBox1.DataBindings.Add("Checked", _bindingSource, nameof(Model.WebSocketAuthenticationEnabled));
             checkBox1.Checked = Model.WebSocketAuthenticationEnabled;
-            
             textBoxPassword.DataBindings.Add("Enabled", _bindingSource, nameof(Model.WebSocketAuthenticationEnabled));
             textBoxPassword.DataBindings.Add("Text", _bindingSource, nameof(Model.WebSocketPassword));
-            // ToDo:
-            //textBoxPassword.DataBindings.Add("PasswordChar", _bindingSource, "MakeVisible");
+            linkLabel1.DataBindings.Add("Enabled", _bindingSource, nameof(Model.WebSocketAuthenticationEnabled));
 
-            checkBox1.CheckedChanged += (s, e) =>
-            {
-                Model.WebSocketAuthenticationEnabled = checkBox1.Checked;
-            };
+            linkLabel1.MouseDown += (s, e) => textBoxPassword.PasswordChar = false;
+            linkLabel1.MouseUp += (s, e) => textBoxPassword.PasswordChar = true;
+            checkBox1.CheckedChanged += (s, e) => Model.WebSocketAuthenticationEnabled = checkBox1.Checked;
             checkBox2.CheckedChanged += (s, e) =>
             {
                 buttonPrimary1.Enabled = checkBox2.Checked;
@@ -49,11 +46,9 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 RefreshTreeView();
             };
             checkBox3.Checked = Model.IsDeleteVariablesOnExit;
-            checkBox3.CheckedChanged += (s, e) =>
-            {
-                Model.IsDeleteVariablesOnExit = checkBox3.Checked;
-            };
+            checkBox3.CheckedChanged += (s, e) => Model.IsDeleteVariablesOnExit = checkBox3.Checked;
 
+            // Events TreeView on Tab2
             treeView1.CheckBoxes = true;
             treeView1.HideSelection = true;
             treeView1.BeforeSelect += (s, e) => e.Cancel = true;
@@ -67,6 +62,14 @@ namespace dichternebel.YaSB.MacroDeckPlug
                     Model.SaveEvent(Helper.CreateEventKey(e.Node.Parent.Text, e.Node.Text), e.Node.Checked);
                 }
             };
+
+            // Transformations DataTable on Tab3
+            transformationsControl = new TransformationsControl
+            {
+                Dock = DockStyle.Fill
+            };
+            tabPage3.Controls.Add(transformationsControl);
+            transformationsControl.BindToTransformations(Model.Transformations);
         }
 
         private void Model_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -160,6 +163,21 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 parentNode.Checked = false;
             }
             treeView1.AfterCheck += TreeView1_AfterCheck;
+        }
+    }
+
+    public class SelectableTextBoxCell : DataGridViewTextBoxCell
+    {
+        public override void InitializeEditingControl(int rowIndex, object initialFormattedValue, DataGridViewCellStyle dataGridViewCellStyle)
+        {
+            base.InitializeEditingControl(rowIndex, initialFormattedValue, dataGridViewCellStyle);
+            TextBox textBox = DataGridView.EditingControl as TextBox;
+            if (textBox != null)
+            {
+                textBox.ReadOnly = true;
+                textBox.BackColor = dataGridViewCellStyle.BackColor;
+                textBox.BorderStyle = BorderStyle.None;
+            }
         }
     }
 }

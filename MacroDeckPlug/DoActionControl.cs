@@ -44,7 +44,6 @@ namespace dichternebel.YaSB.MacroDeckPlug
             }
         }
 
-
         private void ComboBox1_SelectedIndexChanged(object? sender, EventArgs e)
         {
             var selectedGroup = comboBox1.SelectedItem?.ToString();
