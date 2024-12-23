@@ -72,33 +72,6 @@
             _table.RowCount++;
             _table.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
 
-            //var varNameBox = new TextBox
-            //{
-            //    ReadOnly = true,
-            //    Dock = DockStyle.Fill,
-            //    BackColor = Color.FromArgb(45, 45, 45),
-            //    ForeColor = Color.White,
-            //    BorderStyle = BorderStyle.None,
-            //    Height = 28,
-            //    Padding = new Padding(3),
-            //    TextAlign = HorizontalAlignment.Left
-            //};
-            //varNameBox.DataBindings.Add("Text", transformation, nameof(transformation.Variable));
-
-            //var varValueBox = new TextBox
-            //{
-            //    ReadOnly = true,
-            //    Text = transformation.Value,
-            //    Dock = DockStyle.Fill,
-            //    BackColor = Color.FromArgb(45, 45, 45),
-            //    ForeColor = Color.White,
-            //    BorderStyle = BorderStyle.None,
-            //    Height = 28,
-            //    Padding = new Padding(3),
-            //    TextAlign = HorizontalAlignment.Left
-            //};
-            //varValueBox.DataBindings.Add("Text", transformation, nameof(transformation.Value));
-
             var varNameBox = CreateTextBoxWithPanel(transformation, nameof(transformation.Variable), true);
             var varValueBox = CreateTextBoxWithPanel(transformation, nameof(transformation.Value), true);
             var jsonValueBox = CreateTextBoxWithPanel(transformation, nameof(transformation.TransformationValue), true);
@@ -139,20 +112,6 @@
                     TextAlign = HorizontalAlignment.Left
                 };
             }
-
-            //var jsonValueBox = new TextBox
-            //{
-            //    ReadOnly = true,
-            //    Text = transformation.TransformationValue,
-            //    Dock = DockStyle.Fill,
-            //    BackColor = Color.FromArgb(45, 45, 45),
-            //    ForeColor = Color.White,
-            //    BorderStyle = BorderStyle.None,
-            //    Height = 28,
-            //    Padding = new Padding(3),
-            //    TextAlign = HorizontalAlignment.Left
-            //};
-            //jsonValueBox.DataBindings.Add("Text", transformation, nameof(transformation.TransformationValue));
 
             _table.Controls.Add(varNameBox, 0, rowIndex);
             _table.Controls.Add(varValueBox, 1, rowIndex);
