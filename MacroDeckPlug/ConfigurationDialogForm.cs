@@ -1,7 +1,4 @@
 ﻿using SuchByte.MacroDeck.GUI.CustomControls;
-using SuchByte.MacroDeck.Logging;
-using System.Text.Json;
-using System.Windows.Forms;
 
 namespace dichternebel.YaSB.MacroDeckPlug
 {
@@ -79,7 +76,7 @@ namespace dichternebel.YaSB.MacroDeckPlug
 
         private void Model_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "StreamerBotEvents" && this.IsHandleCreated)
+            if (e.PropertyName == nameof(Model.StreamerBotEvents) && this.IsHandleCreated)
             {
                 if (Model.IsConnectedToStreamerBot)
                 {
@@ -168,21 +165,6 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 parentNode.Checked = false;
             }
             treeView1.AfterCheck += TreeView1_AfterCheck;
-        }
-    }
-
-    public class SelectableTextBoxCell : DataGridViewTextBoxCell
-    {
-        public override void InitializeEditingControl(int rowIndex, object initialFormattedValue, DataGridViewCellStyle dataGridViewCellStyle)
-        {
-            base.InitializeEditingControl(rowIndex, initialFormattedValue, dataGridViewCellStyle);
-            TextBox textBox = DataGridView.EditingControl as TextBox;
-            if (textBox != null)
-            {
-                textBox.ReadOnly = true;
-                textBox.BackColor = dataGridViewCellStyle.BackColor;
-                textBox.BorderStyle = BorderStyle.None;
-            }
         }
     }
 }
