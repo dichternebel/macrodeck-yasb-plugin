@@ -6,14 +6,13 @@ namespace dichternebel.YaSB.MacroDeckPlug
 {
     public class YaSBTransformation : INotifyPropertyChanged
     {
-        private string _jsonKey;
-
         [ReadOnly(true)]
         public string Variable { get; set; }
 
         [ReadOnly(true)]
         public string Value { get; set; }
 
+        private string _jsonKey = string.Empty;
         [DisplayName("JSON Key")]
         public string JsonKey
         {
@@ -23,9 +22,7 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 if (value == _jsonKey) return;
                 var isValidKey = TrySetKey(value);
                 _jsonKey = isValidKey ? value : string.Empty;
-                OnPropertyChanged();
                 OnPropertyChanged("TransformationValue");
-                Main.Model.SaveTransformations();
             }
         }
 
@@ -41,12 +38,20 @@ namespace dichternebel.YaSB.MacroDeckPlug
             {
                 using var jsonDocument = JsonDocument.Parse(Value);
                 var root = jsonDocument.RootElement;
-                var result = false;
-                if (!string.IsNullOrEmpty(keyValue) && root.TryGetProperty(keyValue, out var value))
+
+                if (string.IsNullOrEmpty(keyValue)) return false;
+
+                var keyParts = keyValue.Split(new[] { '.' }, 2);
+                var element = root;
+
+                foreach (var part in keyParts)
                 {
-                    result = true;
+                    if (!element.TryGetProperty(part, out var value))
+                        return false;
+                    element = value;
                 }
-                return result;
+
+                return true;
             }
             catch { }
             return false;
@@ -58,10 +63,21 @@ namespace dichternebel.YaSB.MacroDeckPlug
             {
                 using var jsonDocument = JsonDocument.Parse(Value);
                 var root = jsonDocument.RootElement;
-                if (!string.IsNullOrEmpty(JsonKey) && root.TryGetProperty(JsonKey, out var value))
+
+                if (string.IsNullOrEmpty(JsonKey))
+                    return Value;
+
+                var keyParts = JsonKey.Split(new[] { '.' }, 2);
+                var element = root;
+
+                foreach (var part in keyParts)
                 {
-                    return value.ToString();
+                    if (!element.TryGetProperty(part, out var value))
+                        return Value;
+                    element = value;
                 }
+
+                return element.ToString();
             }
             catch { }
             return Value;
@@ -73,16 +89,26 @@ namespace dichternebel.YaSB.MacroDeckPlug
             {
                 using var jsonDocument = JsonDocument.Parse(jsonString);
                 var root = jsonDocument.RootElement;
+                var keys = new List<string>();
 
-                var keys = root.EnumerateObject()
-                    .Select(prop => prop.Name)
-                    .ToList();
+                foreach (var prop in root.EnumerateObject())
+                {
+                    keys.Add(prop.Name);
+
+                    if (prop.Value.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var childProp in prop.Value.EnumerateObject())
+                        {
+                            keys.Add($"{prop.Name}.{childProp.Name}");
+                        }
+                    }
+                }
 
                 keys.Insert(0, "<none>");
                 return keys;
             }
             catch { }
-            return new List<string>();
+            return [];
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

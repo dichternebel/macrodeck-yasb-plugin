@@ -1,11 +1,9 @@
-﻿using System.ComponentModel;
-
-namespace dichternebel.YaSB.MacroDeckPlug
+﻿namespace dichternebel.YaSB.MacroDeckPlug
 {
     public partial class TransformationsControl : UserControl
     {
         private TableLayoutPanel _table;
-        private BindingList<YaSBTransformation> _bindingList;
+        public List<YaSBTransformation> BindingList { get; private set; }
 
         public TransformationsControl()
         {
@@ -45,21 +43,15 @@ namespace dichternebel.YaSB.MacroDeckPlug
             }
         }
 
-        public void BindToTransformations(BindingList<YaSBTransformation> yaSBTransformations)
+        public void BindToTransformations(List<YaSBTransformation> yaSBTransformations)
         {
-            _bindingList = yaSBTransformations;
-            _bindingList.ListChanged += BindingSource_ListChanged;
+            BindingList = yaSBTransformations;
             RefreshRows();
-        }
-
-        private void BindingSource_ListChanged(object sender, ListChangedEventArgs e)
-        {
-            if (e.ListChangedType != ListChangedType.ItemChanged) RefreshRows();
         }
 
         private void RefreshRows()
         {
-            if (_bindingList?.Count == null) return;
+            if (BindingList?.Count == null) return;
 
             // Clear existing data rows
             while (_table.RowCount > 1)
@@ -68,9 +60,9 @@ namespace dichternebel.YaSB.MacroDeckPlug
             }
 
             // Add rows for each transformation
-            for (int i = 0; i < _bindingList.Count; i++)
+            for (int i = 0; i < BindingList.Count; i++)
             {
-                var transformation = _bindingList[i];
+                var transformation = BindingList[i];
                 AddDataRow(transformation, i + 1);
             }
         }
@@ -78,27 +70,38 @@ namespace dichternebel.YaSB.MacroDeckPlug
         private void AddDataRow(YaSBTransformation transformation, int rowIndex)
         {
             _table.RowCount++;
+            _table.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
 
-            var varNameBox = new TextBox
-            {
-                ReadOnly = true,
-                Dock = DockStyle.Fill,
-                BackColor = Color.FromArgb(45, 45, 45),
-                ForeColor = Color.White,
-                BorderStyle = BorderStyle.None
-            };
-            varNameBox.DataBindings.Add("Text", transformation, nameof(transformation.Variable));
+            //var varNameBox = new TextBox
+            //{
+            //    ReadOnly = true,
+            //    Dock = DockStyle.Fill,
+            //    BackColor = Color.FromArgb(45, 45, 45),
+            //    ForeColor = Color.White,
+            //    BorderStyle = BorderStyle.None,
+            //    Height = 28,
+            //    Padding = new Padding(3),
+            //    TextAlign = HorizontalAlignment.Left
+            //};
+            //varNameBox.DataBindings.Add("Text", transformation, nameof(transformation.Variable));
 
-            var varValueBox = new TextBox
-            {
-                ReadOnly = true,
-                Text = transformation.Value,
-                Dock = DockStyle.Fill,
-                BackColor = Color.FromArgb(45, 45, 45),
-                ForeColor = Color.White,
-                BorderStyle = BorderStyle.None
-            };
-            varValueBox.DataBindings.Add("Text", transformation, nameof(transformation.Value));
+            //var varValueBox = new TextBox
+            //{
+            //    ReadOnly = true,
+            //    Text = transformation.Value,
+            //    Dock = DockStyle.Fill,
+            //    BackColor = Color.FromArgb(45, 45, 45),
+            //    ForeColor = Color.White,
+            //    BorderStyle = BorderStyle.None,
+            //    Height = 28,
+            //    Padding = new Padding(3),
+            //    TextAlign = HorizontalAlignment.Left
+            //};
+            //varValueBox.DataBindings.Add("Text", transformation, nameof(transformation.Value));
+
+            var varNameBox = CreateTextBoxWithPanel(transformation, nameof(transformation.Variable), true);
+            var varValueBox = CreateTextBoxWithPanel(transformation, nameof(transformation.Value), true);
+            var jsonValueBox = CreateTextBoxWithPanel(transformation, nameof(transformation.TransformationValue), true);
 
             Control jsonKeyControl = new Control();
 
@@ -129,26 +132,55 @@ namespace dichternebel.YaSB.MacroDeckPlug
                     Text = "n.a.",
                     Dock = DockStyle.Fill,
                     BackColor = Color.FromArgb(45, 45, 45),
-                    ForeColor = Color.Gray,
-                    BorderStyle = BorderStyle.None
+                    ForeColor = Color.LightGray,
+                    BorderStyle = BorderStyle.None,
+                    Height = 28,
+                    Padding = new Padding(3),
+                    TextAlign = HorizontalAlignment.Left
                 };
             }
 
-            var jsonValueBox = new TextBox
-            {
-                ReadOnly = true,
-                Text = transformation.TransformationValue,
-                Dock = DockStyle.Fill,
-                BackColor = Color.FromArgb(45, 45, 45),
-                ForeColor = Color.White,
-                BorderStyle = BorderStyle.None
-            };
-            jsonValueBox.DataBindings.Add("Text", transformation, nameof(transformation.TransformationValue));
+            //var jsonValueBox = new TextBox
+            //{
+            //    ReadOnly = true,
+            //    Text = transformation.TransformationValue,
+            //    Dock = DockStyle.Fill,
+            //    BackColor = Color.FromArgb(45, 45, 45),
+            //    ForeColor = Color.White,
+            //    BorderStyle = BorderStyle.None,
+            //    Height = 28,
+            //    Padding = new Padding(3),
+            //    TextAlign = HorizontalAlignment.Left
+            //};
+            //jsonValueBox.DataBindings.Add("Text", transformation, nameof(transformation.TransformationValue));
 
             _table.Controls.Add(varNameBox, 0, rowIndex);
             _table.Controls.Add(varValueBox, 1, rowIndex);
             _table.Controls.Add(jsonKeyControl, 2, rowIndex);
             _table.Controls.Add(jsonValueBox, 3, rowIndex);
+        }
+
+        private Panel CreateTextBoxWithPanel(YaSBTransformation transformation, string bindingProperty, bool readOnly)
+        {
+            var panel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(33, 33, 33),
+                Padding = new Padding(1, 4, 1, 4)
+            };
+
+            var textBox = new TextBox
+            {
+                ReadOnly = readOnly,
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(45, 45, 45),
+                ForeColor = Color.White,
+                BorderStyle = BorderStyle.None
+            };
+            textBox.DataBindings.Add("Text", transformation, bindingProperty);
+
+            panel.Controls.Add(textBox);
+            return panel;
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using SuchByte.MacroDeck.GUI.CustomControls;
+using SuchByte.MacroDeck.Logging;
+using System.Text.Json;
 using System.Windows.Forms;
 
 namespace dichternebel.YaSB.MacroDeckPlug
@@ -69,7 +71,10 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 Dock = DockStyle.Fill
             };
             tabPage3.Controls.Add(transformationsControl);
-            transformationsControl.BindToTransformations(Model.Transformations);
+
+            var currentTransformations = Model.GetTransformations().ToList();
+            transformationsControl.BindToTransformations(currentTransformations);
+            transformationsControl.Disposed += (s, e) =>  Model.SaveTransformations(currentTransformations);
         }
 
         private void Model_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

@@ -243,64 +243,12 @@ namespace dichternebel.YaSB
             }
         }
 
-        private List<YaSBTransformation> _transformations;
-        public BindingList<YaSBTransformation> Transformations
-        {
-            get
-            {
-                // Instantiate and fill list with current existing variables
-                _transformations = new List<YaSBTransformation>();
-                var existingVariables = VariableManager.GetVariables(Main.Instance);
-
-                foreach (var variable in existingVariables)
-                {
-                    var transformation = new YaSBTransformation
-                    {
-                        Variable = variable.Name,
-                        Value = variable.Value
-                    };
-                    _transformations.Add(transformation);
-                }
-
-                // Add existing transformations to the list
-                var existingTransformationsJson = PluginConfiguration.GetValue(Main.Instance, "YaSBTransformationList");
-
-                if (!string.IsNullOrEmpty(existingTransformationsJson))
-                {
-                    var existingTransformationsList = JsonSerializer.Deserialize<List<YaSBTransformation>>(existingTransformationsJson);
-
-                    foreach (var item in existingTransformationsList)
-                    {
-                        var existingVariable = _transformations.FirstOrDefault(x => x.Variable == item.Variable);
-                        if (existingVariable != null)
-                        {
-                            existingVariable.JsonKey = item.JsonKey;
-                        }
-                        else
-                        {
-                            _transformations.Add(item);
-                        }
-                    }
-                }
-
-                return new BindingList<YaSBTransformation>(_transformations);
-            }
-        }
+        //public BindingList<YaSBTransformation> Transformations { get; private set; }
 
         public Model()
         {
             _isConnectedToStreamerBot = false;
             PropertyChanged += HandleOnPropertyChanged;
-            Transformations.ListChanged += Transformations_ListChanged;
-        }
-
-        private void Transformations_ListChanged(object? sender, ListChangedEventArgs e)
-        {
-            if (e.ListChangedType == ListChangedType.ItemChanged)
-            {
-                MacroDeckLogger.Trace(Main.Instance, "TransformationList changed!");
-                SaveTransformations();
-            }
         }
 
         private void HandleOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -352,7 +300,7 @@ namespace dichternebel.YaSB
                     break;
                 case ResponseType.Event:
                     var botEvent = message.Event;
-                    SetVariable(botEvent);
+                    SetAndTransformVariable(botEvent);
                     break;
                 default:
                     //MacroDeckLogger.Trace(Main.Instance,$"Raw message:\n{message.RawMessage}");
@@ -360,33 +308,28 @@ namespace dichternebel.YaSB
             }
         }
 
-        private void SetVariable(BotEvent currentEvent)
+        private void SetAndTransformVariable(BotEvent currentEvent)
         {
-            // I guess this is how the Steamer.Bot Plugin would make it so I keep it here for compatability
-            if (currentEvent.EventInfo.Source == "General" && currentEvent.EventInfo.Type == "Custom")
-            {
-                var value = currentEvent.Data.KeyValuePairs.First().Value;
-                var currentType = GetValueType(value);
-                VariableType variableType = TypeMapping.TryGetValue(currentType, out var type) ? type : VariableType.String;
-                VariableManager.SetValue($"{currentEvent.EventInfo.Type}_{currentEvent.Data.KeyValuePairs.First().Key}", currentEvent.Data.KeyValuePairs.First().Value, variableType, Main.Instance, []);
-                return;
-            }
-            // Doing the same with global variables to make switch easier
-            if (currentEvent.EventInfo.Source == "Misc" && currentEvent.EventInfo.Type == "GlobalVariableUpdated")
-            {
-                var value = currentEvent.Data.KeyValuePairs["newValue"];
-                var currentType = GetValueType(value);
+            if (currentEvent == null) return;
+            if (string.IsNullOrEmpty(currentEvent.Data.KeyValuePairs.First().Key)) return;
 
-                VariableType variableType = TypeMapping.TryGetValue(currentType, out var type) ? type : VariableType.String;
-                VariableManager.SetValue($"{currentEvent.EventInfo.Type}_{currentEvent.Data.KeyValuePairs["name"]}", currentEvent.Data.KeyValuePairs["newValue"], variableType, Main.Instance, []);
-                return;
-            }
-            
-            // I expect that data is something, so I will store a string for now to keep it simple
-            foreach(var keyValuePair in currentEvent.Data.KeyValuePairs)
+            var identifier = Helper.CreateEventKey(currentEvent.EventInfo.Type, currentEvent.Data.KeyValuePairs.First().Key).ToLower();
+            if (currentEvent.Data.KeyValuePairs.Count > 1)
             {
-                VariableManager.SetValue($"{currentEvent.EventInfo.Source}_{currentEvent.EventInfo.Type}", keyValuePair.Value, VariableType.String, Main.Instance, []);
+                // This assumes that the first KeyValuePair entry after 'id' is the key of the event... Danger, Will Robinson!
+                var identifierKeyValuePair = currentEvent.Data.KeyValuePairs.FirstOrDefault(x  => !x.Key.Equals("id", StringComparison.CurrentCultureIgnoreCase));
+
+                if (identifierKeyValuePair.Value != null)
+                {
+                    // Macro Deck is "sanitizing" the variable name so we have to respect that
+                    identifier = Helper.CreateEventKey(currentEvent.EventInfo.Type, identifierKeyValuePair.Value.ToString()).ToLower().Replace("-","_");
+                }
             }
+               
+            var eventKeyValuePair = new KeyValuePair<string, object>(identifier, JsonSerializer.Serialize(currentEvent.Data.KeyValuePairs));
+            var transformedeventKeyValuePair = TransformVariable(eventKeyValuePair);
+            var transformedVariableType = GetValueType(transformedeventKeyValuePair.Value);
+            VariableManager.SetValue(identifier, transformedeventKeyValuePair.Value, transformedVariableType, Main.Instance, []);
         }
 
         private void SetVariables(BotEvent globalsEvent)
@@ -402,8 +345,23 @@ namespace dichternebel.YaSB
                     { "name", item.Key },
                     { "newValue", dynamicObject.GetProperty("value") }
                 };
-                SetVariable(currentBotEvent);
+                SetAndTransformVariable(currentBotEvent);
             }
+        }
+
+        private KeyValuePair<string,object> TransformVariable(KeyValuePair<string, object> variable)
+        {
+            var result = new KeyValuePair<string, object> ( variable.Key, variable.Value );
+            var currentTransformations = GetTransformations().ToList();
+
+            var transformation = currentTransformations.FirstOrDefault(x => x.Variable == variable.Key);
+            if (transformation != null )
+            {
+                transformation.Value = variable.Value.ToString();
+                result = new KeyValuePair<string, object>(variable.Key, transformation.TransformationValue); 
+            }
+
+            return result;
         }
 
         public void DeleteVariables()
@@ -415,24 +373,28 @@ namespace dichternebel.YaSB
             }
         }
 
-        private Type GetValueType(object value)
+        private VariableType GetValueType(object value)
         {
-            if (value == null) return typeof(string);
+            var currentType = typeof(string);
+            if (value != null)
+            {
+                if (long.TryParse(value.ToString(), out _)) currentType = typeof(int);
+                else if (decimal.TryParse(value.ToString(), out _)) currentType = typeof(decimal);
+                else if (bool.TryParse(value.ToString(), out _)) currentType = typeof(bool);
+            }
 
-            if (int.TryParse(value.ToString(), out _)) return typeof(int);
-            if (decimal.TryParse(value.ToString(), out _)) return typeof(decimal);
-            if (float.TryParse(value.ToString(), out _)) return typeof(float);
-            if (double.TryParse(value.ToString(), out _)) return typeof(double);
-            if (bool.TryParse(value.ToString(), out _)) return typeof(bool);
+            var currentVariableType = VariableType.String;
+            if (currentType != typeof(string))
+            {
+                currentVariableType = TypeMapping.TryGetValue(currentType, out var type) ? type : VariableType.String;
+            }
 
-            return typeof(string);
+            return currentVariableType;
         }
 
         private static readonly Dictionary<Type, VariableType> TypeMapping = new()
             {
                 { typeof(int), VariableType.Integer },
-                { typeof(double), VariableType.Float },
-                { typeof(float), VariableType.Float },
                 { typeof(decimal),VariableType.Float },
                 { typeof(bool), VariableType.Bool },
                 { typeof(string),VariableType.String }
@@ -489,18 +451,55 @@ namespace dichternebel.YaSB
             if (value) WebSocketClient.SubscribeToServerAsync().Wait();
         }
 
-        public void SaveTransformations()
+        public List<YaSBTransformation> GetTransformations()
         {
-            List<YaSBTransformation> transformationList = new List<YaSBTransformation>();
+            // Instantiate
+            var transformations = new List<YaSBTransformation>();
 
-            foreach (var item in this._transformations)
+            // Add existing transformations to the list
+            var existingTransformationsJson = PluginConfiguration.GetValue(Main.Instance, "YaSBTransformationList");
+
+            if (!string.IsNullOrEmpty(existingTransformationsJson))
+            {
+                var existingTransformationsList = JsonSerializer.Deserialize<List<YaSBTransformation>>(existingTransformationsJson);
+
+                foreach (var item in existingTransformationsList)
+                {
+                   transformations.Add(item);
+                }
+            }
+
+            // Fill list with current existing variables
+            var existingVariables = VariableManager.GetVariables(Main.Instance);
+
+            foreach (var variable in existingVariables)
+            {
+                var transformation = new YaSBTransformation
+                {
+                    Variable = variable.Name,
+                    Value = variable.Value
+                };
+
+                if (transformations.FirstOrDefault(x => x.Variable == variable.Name) == null)
+                {
+                    // Add variable to top
+                    transformations.Insert(0, transformation);
+                }
+            }
+
+            return transformations;
+        }
+
+        public void SaveTransformations(List<YaSBTransformation> transientTransformations)
+        {
+            List<YaSBTransformation> transformationList = [];
+
+            foreach (var item in transientTransformations)
             {
                 if (!string.IsNullOrEmpty(item.JsonKey)) transformationList.Add(item);
             }
 
             PluginConfiguration.SetValue(Main.Instance, "YaSBTransformationList", JsonSerializer.Serialize(transformationList));
-
-            // ToDo: Update variables to use the transformation value
         }
 
         public void ResetConfiguration()

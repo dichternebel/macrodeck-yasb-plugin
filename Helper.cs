@@ -7,7 +7,7 @@
 
         public static Dictionary<string, string[]> ExplodeEventKey(string eventIdentifier)
         {
-            var parts = eventIdentifier.Split("_");
+            var parts = eventIdentifier.Split(new[] { '_' }, 2);
             return new Dictionary<string, string[]>() { { parts[0], new[] { parts[1] } } };
         }
     }
