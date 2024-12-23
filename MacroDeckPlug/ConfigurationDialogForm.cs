@@ -59,6 +59,7 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 {
                     e.Node.Checked = !e.Node.Checked;
                     Model.SetEventSubscription(Helper.CreateEventKey(e.Node.Parent.Text, e.Node.Text), e.Node.Checked);
+                    UpdateParentNodeCheckState(e.Node.Parent);
                 }
             };
 
