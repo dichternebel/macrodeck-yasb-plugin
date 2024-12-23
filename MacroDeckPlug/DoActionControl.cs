@@ -14,6 +14,10 @@ namespace dichternebel.YaSB.MacroDeckPlug
         public DoActionControl(PluginAction macroDeckAction, ActionConfigurator actionConfigurator)
         {
             this._macroDeckAction = macroDeckAction;
+
+            // Refresh actions
+            Main.Model.WebSocketClient.GetActionsAsync().Wait();
+
             InitializeComponent();
 
             config = new ActionConfiguration();
