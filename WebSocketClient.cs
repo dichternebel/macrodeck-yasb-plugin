@@ -165,7 +165,7 @@ namespace dichternebel.YaSB
         {
             try
             {
-                var eventsDictionary = Main.Model?.ConfiguredEvents;
+                var eventsDictionary = Main.Model?.EventSubscriptionDictionary;
                 if (eventsDictionary == null || !eventsDictionary.Any()) return;
 
                 var request = new
@@ -221,7 +221,7 @@ namespace dichternebel.YaSB
         {
             try
             {
-                var eventsDictionary = Main.Model?.ConfiguredEvents;
+                var eventsDictionary = Main.Model?.EventSubscriptionDictionary;
                 if (eventsDictionary == null || !eventsDictionary.Any()) return;
 
                 if (eventsDictionary.TryGetValue("Misc", out string[] miscEvents))

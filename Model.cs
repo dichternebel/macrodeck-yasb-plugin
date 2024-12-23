@@ -93,38 +93,50 @@ namespace dichternebel.YaSB
             }
         }
 
-        public Dictionary<string, string[]> ConfiguredEvents {
+        public List<string> YaSBEventSubscriptions
+        {
             get
             {
-                var configuredEvents = new Dictionary<string, string[]>();
+                var currentEventSubscriptions = GetPluginConfiguration();
+                if (string.IsNullOrEmpty(currentEventSubscriptions)) return new List<string>();
+                return JsonSerializer.Deserialize<List<string>>(currentEventSubscriptions) ?? [];
+            }
+            set
+            {
+                SetPluginConfiguration(JsonSerializer.Serialize(value));
+            }
+        }
+
+        public Dictionary<string, string[]> EventSubscriptionDictionary {
+            get
+            {
+                var eventSubscriptionDictionary = new Dictionary<string, string[]>();
 
                 if (StreamerBotEvents != null)
                 {
                     foreach (var key in StreamerBotEvents.Keys)
                     {
                         var valueArray = StreamerBotEvents[key];
-                        var checkedValues = new List<string>();
+                        var checkedEvents = new List<string>();
                         foreach (var value in valueArray)
                         {
-                            var isChecked = IsEventChecked(Helper.CreateEventKey(key, value));
+                            var isChecked = IsEventSubscribed(Helper.CreateEventKey(key, value));
                             if (isChecked)
                             {
-                                checkedValues.Add(value);
+                                checkedEvents.Add(value);
                             }
                         }
 
-                        if (checkedValues.Any())
+                        if (checkedEvents.Any())
                         {
-                            configuredEvents.Add(key, checkedValues.ToArray());
+                            eventSubscriptionDictionary.Add(key, checkedEvents.ToArray());
                         }
                     }
                 }
 
-                return configuredEvents;
+                return eventSubscriptionDictionary;
             }
         }
-
-
 
         public bool IsConfigured
         {
@@ -242,8 +254,6 @@ namespace dichternebel.YaSB
                 }.Uri.ToString();
             }
         }
-
-        //public BindingList<YaSBTransformation> Transformations { get; private set; }
 
         public Model()
         {
@@ -426,29 +436,55 @@ namespace dichternebel.YaSB
             PluginCredentials.SetCredentials(Main.Instance, keyValuePairs);
         }
 
-        public bool IsEventChecked(string eventIdentifier)
+        public bool IsEventSubscribed(string eventIdentifier)
         {
-            var value = PluginConfiguration.GetValue(Main.Instance, eventIdentifier);
-            return bool.TryParse(value, out bool result) ? result : false;
+            var currentEventSubscriptions = YaSBEventSubscriptions;
+            return currentEventSubscriptions.Contains(eventIdentifier);
         }
 
-        public void SaveEvent(string eventIdentifier, bool value)
+        public void SetEventSubscription(string eventIdentifier, bool value)
         {
-            PluginConfiguration.SetValue(Main.Instance, eventIdentifier, value.ToString());
-           
+            var currentEventSubscriptions = YaSBEventSubscriptions.ToList();
+
+            if (!currentEventSubscriptions.Contains(eventIdentifier) && value)
+            {
+                currentEventSubscriptions.Add(eventIdentifier);
+            }
+            else if (currentEventSubscriptions.Contains(eventIdentifier) && !value)
+            {
+                currentEventSubscriptions.Remove(eventIdentifier);
+            }
+
+            YaSBEventSubscriptions = currentEventSubscriptions;
+
             if (value) WebSocketClient.SubscribeToServerAsync().Wait();
             else WebSocketClient.UnSubscribeFromServerAsync(eventIdentifier).Wait();
         }
 
-        public void SaveEvents(List<string> eventList, bool value)
+        public void SetEventSubscriptions(List<string> eventList, bool value)
         {
+            var currentEventSubscriptions = YaSBEventSubscriptions.ToList();
+
             foreach (var eventIdentifier in eventList)
             {
-                PluginConfiguration.SetValue(Main.Instance, eventIdentifier, value.ToString());
-                if (!value) WebSocketClient.UnSubscribeFromServerAsync(eventIdentifier).Wait();
+                if (!currentEventSubscriptions.Contains(eventIdentifier) && value)
+                {
+                    currentEventSubscriptions.Add(eventIdentifier);
+                }
+                else if (currentEventSubscriptions.Contains(eventIdentifier) && !value)
+                {
+                    currentEventSubscriptions.Remove(eventIdentifier);
+                }
             }
 
-            if (value) WebSocketClient.SubscribeToServerAsync().Wait();
+            YaSBEventSubscriptions = currentEventSubscriptions;
+
+            if (!value)
+            foreach (var eventIdentifier in eventList)
+            {
+                WebSocketClient.UnSubscribeFromServerAsync(eventIdentifier).Wait();
+            }
+            else WebSocketClient.SubscribeToServerAsync().Wait();
         }
 
         public List<YaSBTransformation> GetTransformations()
@@ -518,8 +554,8 @@ namespace dichternebel.YaSB
 
         private void SetDefaultEvents()
         {
-            SaveEvent("General_Custom", true);
-            SaveEvent("Misc_GlobalVariableUpdated", true);
+            SetEventSubscription("General_Custom", true);
+            SetEventSubscription("Misc_GlobalVariableUpdated", true);
             IsConfigured = true;
         }
 

@@ -58,7 +58,7 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 if (e.Node != null && e.Node.Parent != null && hitTest.Location != TreeViewHitTestLocations.StateImage)
                 {
                     e.Node.Checked = !e.Node.Checked;
-                    Model.SaveEvent(Helper.CreateEventKey(e.Node.Parent.Text, e.Node.Text), e.Node.Checked);
+                    Model.SetEventSubscription(Helper.CreateEventKey(e.Node.Parent.Text, e.Node.Text), e.Node.Checked);
                 }
             };
 
@@ -114,7 +114,7 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 foreach (var eventName in eventGroup.Value)
                 {
                     TreeNode childNode = rootNode.Nodes.Add(eventName);
-                    childNode.Checked = Model.IsEventChecked(Helper.CreateEventKey(eventGroup.Key, eventName));
+                    childNode.Checked = Model.IsEventSubscribed(Helper.CreateEventKey(eventGroup.Key, eventName));
                 }
                 UpdateParentNodeCheckState(rootNode);
             }
@@ -129,7 +129,7 @@ namespace dichternebel.YaSB.MacroDeckPlug
             {
                 // Child node was checked/unchecked - update parent
                 UpdateParentNodeCheckState(e.Node.Parent);
-                Model.SaveEvent(Helper.CreateEventKey(e.Node.Parent.Text, e.Node.Text), e.Node.Checked);
+                Model.SetEventSubscription(Helper.CreateEventKey(e.Node.Parent.Text, e.Node.Text), e.Node.Checked);
             }
             else
             {
@@ -141,7 +141,7 @@ namespace dichternebel.YaSB.MacroDeckPlug
                     //Model.SaveEvent(Helper.CreateEventKey(child.Parent.Text, child.Text), e.Node.Checked);
                     eventList.Add(Helper.CreateEventKey(child.Parent.Text, child.Text));
                 }
-                Model.SaveEvents(eventList, e.Node.Checked);
+                Model.SetEventSubscriptions(eventList, e.Node.Checked);
             }
         }
 
