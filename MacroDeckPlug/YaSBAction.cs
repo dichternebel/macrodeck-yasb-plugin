@@ -22,8 +22,8 @@ namespace dichternebel.YaSB.MacroDeckPlug
         public override void Trigger(string clientId, ActionButton actionButton)
         {
             var config = JsonSerializer.Deserialize<ActionConfiguration>(Configuration);
-            if (config == null || config.streamerBotActionId == null || config.streamerBotActionName == null) return;
-            WebSocketClient.Instance.SendMessageAsync(config.streamerBotActionId.ToString(), config.streamerBotActionName.ToString(), config.streamerBotActionArgument.ToString());
+            if (config == null || string.IsNullOrWhiteSpace(config.streamerBotActionId) || string.IsNullOrWhiteSpace(config.streamerBotActionName)) return;
+            WebSocketClient.Instance.SendMessageAsync(config.streamerBotActionId.ToString(), config.streamerBotActionName.ToString(), config.streamerBotActionArgument.ToString()).Wait();
         }
     }
 }

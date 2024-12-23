@@ -80,13 +80,13 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 && roundedTextBoxActionName.Text == config.streamerBotActionName
                 && roundedTextBoxArgument.Text == config.streamerBotActionArgument) return true;
 
-            config.streamerBotActionId = roundedTextBoxActionId.Text;
-            config.streamerBotActionName = roundedTextBoxActionName.Text;
-            config.streamerBotActionArgument = roundedTextBoxArgument.Text;
+            config.streamerBotActionId = roundedTextBoxActionId.Text.Trim();
+            config.streamerBotActionName = roundedTextBoxActionName.Text.Trim();
+            config.streamerBotActionArgument = roundedTextBoxArgument.Text.Trim();
 
             string configJson = JsonSerializer.Serialize(config);
 
-            this._macroDeckAction.ConfigurationSummary = $":: {roundedTextBoxActionName.Text} :: {roundedTextBoxArgument.Text}";
+            this._macroDeckAction.ConfigurationSummary = $":: {config.streamerBotActionName} :: {config.streamerBotActionArgument}";
             this._macroDeckAction.Configuration = configJson.ToString();
 
             return true;

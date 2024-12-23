@@ -461,7 +461,7 @@ namespace dichternebel.YaSB
                 true,
                 _cts.Token);
 
-            MacroDeckLogger.Info(Main.Instance, "Do-Action request sent successfully.");
+            MacroDeckLogger.Info(Main.Instance, $"DoAction({actionName}) request sent successfully.");
 
         }
 
