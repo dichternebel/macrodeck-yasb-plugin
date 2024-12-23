@@ -20,9 +20,6 @@
             _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
             _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
 
-            // Headers
-            AddHeaderRow();
-
             Controls.Add(_table);
         }
 
@@ -51,13 +48,16 @@
 
         private void RefreshRows()
         {
-            if (BindingList?.Count == null) return;
+            // Clear everything
+            _table.Controls.Clear();
+            _table.RowCount = 0;
+            _table.RowStyles.Clear();
 
-            // Clear existing data rows
-            while (_table.RowCount > 1)
-            {
-                _table.RowCount--;
-            }
+            // Leave view empty when there is no data
+            if (BindingList?.Count == 0) return;
+
+            // Add header row first
+            AddHeaderRow();
 
             // Add rows for each transformation
             for (int i = 0; i < BindingList.Count; i++)

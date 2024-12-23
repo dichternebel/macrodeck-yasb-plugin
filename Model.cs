@@ -543,6 +543,7 @@ namespace dichternebel.YaSB
             PluginConfiguration.DeletePluginConfig(Main.Instance);
             PluginCredentials.DeletePluginCredentials(Main.Instance);
 
+            DeleteVariables();
             SetDefaultEvents();
 
             OnPropertyChanged("WebSocketHost");

@@ -5,45 +5,46 @@ namespace dichternebel.YaSB.MacroDeckPlug
     public partial class ConfigurationDialogForm : DialogForm
     {
         private TransformationsControl transformationsControl;
-        private readonly BindingSource _bindingSource = new BindingSource();
 
-        public Model Model
-        {
-            get => (Model)_bindingSource.DataSource;
-            set => _bindingSource.DataSource = value;
-        }
+        public Model Model { get; private set; }
 
         public ConfigurationDialogForm(Model model)
         {
             InitializeComponent();
-            _bindingSource.DataSource = model;
+            Model = model;
             Model.PropertyChanged += Model_PropertyChanged;
 
             // Add databindings to controls on Tab1
-            textBoxAddress.DataBindings.Add("Text", _bindingSource, nameof(Model.WebSocketHost));
-            textBoxPort.DataBindings.Add("Text", _bindingSource, nameof(Model.WebSocketPort));
-            textBoxEndpoint.DataBindings.Add("Text", _bindingSource, nameof(Model.WebSocketEndpoint));
-            // This is not workin and I don't know why...
-            //checkBox1.DataBindings.Add("Checked", _bindingSource, nameof(Model.WebSocketAuthenticationEnabled));
-            checkBox1.Checked = Model.WebSocketAuthenticationEnabled;
-            textBoxPassword.DataBindings.Add("Enabled", _bindingSource, nameof(Model.WebSocketAuthenticationEnabled));
-            textBoxPassword.DataBindings.Add("Text", _bindingSource, nameof(Model.WebSocketPassword));
-            linkLabel1.DataBindings.Add("Enabled", _bindingSource, nameof(Model.WebSocketAuthenticationEnabled));
 
+            // Websocket server settings
+            textBoxAddress.DataBindings.Add("Text", Model, nameof(Model.WebSocketHost));
+            textBoxPort.DataBindings.Add("Text", Model, nameof(Model.WebSocketPort));
+            textBoxEndpoint.DataBindings.Add("Text", Model, nameof(Model.WebSocketEndpoint));
+            checkBox1.Checked = Model.WebSocketAuthenticationEnabled;
+            textBoxPassword.DataBindings.Add("Enabled", Model, nameof(Model.WebSocketAuthenticationEnabled));
+            textBoxPassword.DataBindings.Add("Text", Model, nameof(Model.WebSocketPassword));
+            linkLabel1.DataBindings.Add("Enabled", Model, nameof(Model.WebSocketAuthenticationEnabled));
             linkLabel1.MouseDown += (s, e) => textBoxPassword.PasswordChar = false;
             linkLabel1.MouseUp += (s, e) => textBoxPassword.PasswordChar = true;
+
+            // Click guard for reset configuration
             checkBox1.CheckedChanged += (s, e) => Model.WebSocketAuthenticationEnabled = checkBox1.Checked;
             checkBox2.CheckedChanged += (s, e) =>
             {
                 buttonPrimary1.Enabled = checkBox2.Checked;
                 buttonPrimary1.ForeColor = checkBox2.Checked ? Color.White : Color.DarkGray;
             };
+
+            // Reset configuration and rebind controls
             buttonPrimary1.Click += (s, e) =>
             {
                 Model.ResetConfiguration();
                 checkBox2.Checked = false;
                 RefreshTreeView();
+                BindTransformationControl();
             };
+
+            // Delete variables on exit
             checkBox3.Checked = Model.IsDeleteVariablesOnExit;
             checkBox3.CheckedChanged += (s, e) => Model.IsDeleteVariablesOnExit = checkBox3.Checked;
 
@@ -70,22 +71,15 @@ namespace dichternebel.YaSB.MacroDeckPlug
             };
             tabPage3.Controls.Add(transformationsControl);
 
-            var currentTransformations = Model.GetTransformations().ToList();
-            transformationsControl.BindToTransformations(currentTransformations);
-            transformationsControl.Disposed += (s, e) =>  Model.SaveTransformations(currentTransformations);
+            BindTransformationControl();
+            transformationsControl.Disposed += (s, e) => Model.SaveTransformations(transformationsControl.BindingList);
         }
 
         private void Model_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Model.StreamerBotEvents) && this.IsHandleCreated)
             {
-                if (Model.IsConnectedToStreamerBot)
-                {
-                    this.BeginInvoke(() =>
-                    {
-                        RefreshTreeView();
-                    });
-                }
+                if (Model.IsConnectedToStreamerBot) this.BeginInvoke(RefreshTreeView);
             }
         }
 
@@ -115,7 +109,7 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 foreach (var eventName in eventGroup.Value)
                 {
                     TreeNode childNode = rootNode.Nodes.Add(eventName);
-                    childNode.Checked = Model.IsEventSubscribed(Helper.CreateEventKey(eventGroup.Key, eventName));
+                    childNode.Checked = Model.IsEventSubscribed(Helper.CreateEventKey((string)eventGroup.Key, (string)eventName));
                 }
                 UpdateParentNodeCheckState(rootNode);
             }
@@ -166,6 +160,12 @@ namespace dichternebel.YaSB.MacroDeckPlug
                 parentNode.Checked = false;
             }
             treeView1.AfterCheck += TreeView1_AfterCheck;
+        }
+
+        private void BindTransformationControl()
+        {
+            var currentTransformations = Model.GetTransformations();
+            transformationsControl.BindToTransformations(currentTransformations);
         }
     }
 }
