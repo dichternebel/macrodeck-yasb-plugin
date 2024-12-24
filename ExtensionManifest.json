@@ -1,6 +1,6 @@
 {
   "type": "Plugin",
-  "name": "Yet another Streamer.Bot",
+  "name": "Yet another Streamer.bot",
   "author": "dichternebel",
   "repository": "https://www.github.com/dichternebel/macrodeck-yasb-plugin",
   "packageId": "dichternebel.YaSB",
