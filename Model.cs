@@ -323,19 +323,26 @@ namespace dichternebel.YaSB
             if (currentEvent == null) return;
             if (string.IsNullOrEmpty(currentEvent.Data.KeyValuePairs.First().Key)) return;
 
-            var identifier = Helper.CreateEventKey(currentEvent.EventInfo.Type, currentEvent.Data.KeyValuePairs.First().Key).ToLower();
-            if (currentEvent.Data.KeyValuePairs.Count > 1)
-            {
-                // This assumes that the first KeyValuePair entry after 'id' is the key of the event... Danger, Will Robinson!
-                var identifierKeyValuePair = currentEvent.Data.KeyValuePairs.FirstOrDefault(x  => !x.Key.Equals("id", StringComparison.CurrentCultureIgnoreCase));
+            // Macro Deck is "sanitizing" the variable name so we have to respect that
+            var identifier = Helper.CreateEventKey(currentEvent.EventInfo.Source, currentEvent.EventInfo.Type).ToLower().Replace("-", "_");
 
-                if (identifierKeyValuePair.Value != null)
+            // We set the naming especially for Misc/GlobalVariableUpdated and General/Custom different here to get multiple variables in Macro Deck
+            if (currentEvent.EventInfo.Source == "Misc" && currentEvent.EventInfo.Type == "GlobalVariableUpdated"
+                || currentEvent.EventInfo.Source == "General" && currentEvent.EventInfo.Type == "Custom")
+            {
+                identifier = Helper.CreateEventKey(currentEvent.EventInfo.Type, currentEvent.Data.KeyValuePairs.First().Key).ToLower();
+                if (currentEvent.Data.KeyValuePairs.Count > 1)
                 {
-                    // Macro Deck is "sanitizing" the variable name so we have to respect that
-                    identifier = Helper.CreateEventKey(currentEvent.EventInfo.Type, identifierKeyValuePair.Value.ToString()).ToLower().Replace("-","_");
+                    // This assumes that the first KeyValuePair entry after 'id' is the key of the event... Danger, Will Robinson!
+                    var identifierKeyValuePair = currentEvent.Data.KeyValuePairs.FirstOrDefault(x => !x.Key.Equals("id", StringComparison.CurrentCultureIgnoreCase));
+
+                    if (identifierKeyValuePair.Value != null)
+                    {
+                        identifier = Helper.CreateEventKey(currentEvent.EventInfo.Type, identifierKeyValuePair.Value.ToString()).ToLower().Replace("-", "_");
+                    }
                 }
             }
-               
+
             var eventKeyValuePair = new KeyValuePair<string, object>(identifier, JsonSerializer.Serialize(currentEvent.Data.KeyValuePairs));
             var transformedeventKeyValuePair = TransformVariable(eventKeyValuePair);
             var transformedVariableType = GetValueType(transformedeventKeyValuePair.Value);
