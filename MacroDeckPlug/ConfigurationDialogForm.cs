@@ -69,6 +69,8 @@ namespace dichternebel.YaSB.MacroDeckPlug
             {
                 Dock = DockStyle.Fill
             };
+            tabPage3.HorizontalScroll.Enabled = false;
+            tabPage3.HorizontalScroll.Visible = false;
             tabPage3.Controls.Add(transformationsControl);
 
             BindTransformationControl();
@@ -152,7 +154,6 @@ namespace dichternebel.YaSB.MacroDeckPlug
             }
             else if (anyChecked)
             {
-                
                 parentNode.Checked = true;
             }
             else

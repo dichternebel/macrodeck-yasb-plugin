@@ -1,4 +1,6 @@
-﻿namespace dichternebel.YaSB.MacroDeckPlug
+﻿using System.Windows.Forms;
+
+namespace dichternebel.YaSB.MacroDeckPlug
 {
     public partial class TransformationsControl : UserControl
     {
@@ -10,10 +12,13 @@
             _table = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                AutoScroll = true,
                 ColumnCount = 4,
                 BackColor = Color.FromArgb(33, 33, 33)
             };
+            _table.AutoScroll = true;
+            _table.HorizontalScroll.Maximum = 0;
+            _table.AutoScrollMinSize = new Size(0, 0);
+            _table.VerticalScroll.Visible = true;
 
             _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
             _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
