@@ -11,14 +11,13 @@ namespace dichternebel.YaSB.MacroDeckPlug
         {
             _table = new TableLayoutPanel
             {
-                Dock = DockStyle.Fill,
+                AutoSize = true,
                 ColumnCount = 4,
                 BackColor = Color.FromArgb(33, 33, 33)
             };
-            _table.AutoScroll = true;
-            _table.HorizontalScroll.Maximum = 0;
-            _table.AutoScrollMinSize = new Size(0, 0);
-            _table.VerticalScroll.Visible = true;
+
+            _table.Margin = new Padding(0);
+            _table.Padding = new Padding(0);
 
             _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
             _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
@@ -26,6 +25,12 @@ namespace dichternebel.YaSB.MacroDeckPlug
             _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
 
             Controls.Add(_table);
+
+            this.HandleCreated += (s, e) =>
+            {
+                _table.MinimumSize = this.Size;
+                _table.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            };
         }
 
         private void AddHeaderRow()

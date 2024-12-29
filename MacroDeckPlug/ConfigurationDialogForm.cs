@@ -67,10 +67,17 @@ namespace dichternebel.YaSB.MacroDeckPlug
             // Transformations DataTable on Tab3
             transformationsControl = new TransformationsControl
             {
-                Dock = DockStyle.Fill
+                Dock = DockStyle.Fill,
+                AutoSize = false,
+                AutoScroll = true
             };
-            tabPage3.HorizontalScroll.Enabled = false;
-            tabPage3.HorizontalScroll.Visible = false;
+            transformationsControl.HorizontalScroll.Maximum = 0;
+            transformationsControl.HorizontalScroll.Visible = false;
+            transformationsControl.HorizontalScroll.Enabled = false;
+            transformationsControl.VerticalScroll.Visible = true;
+            transformationsControl.VerticalScroll.Enabled = true;
+            transformationsControl.AutoScrollMinSize = new Size(0, transformationsControl.Height + 1);
+
             tabPage3.Controls.Add(transformationsControl);
 
             BindTransformationControl();
