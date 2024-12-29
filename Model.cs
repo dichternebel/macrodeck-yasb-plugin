@@ -98,7 +98,7 @@ namespace dichternebel.YaSB
             get
             {
                 var currentEventSubscriptions = GetPluginConfiguration();
-                if (string.IsNullOrEmpty(currentEventSubscriptions)) return new List<string>();
+                if (string.IsNullOrEmpty(currentEventSubscriptions)) return [];
                 return JsonSerializer.Deserialize<List<string>>(currentEventSubscriptions) ?? [];
             }
             set
@@ -127,7 +127,7 @@ namespace dichternebel.YaSB
                             }
                         }
 
-                        if (checkedEvents.Any())
+                        if (checkedEvents.Count > 0)
                         {
                             eventSubscriptionDictionary.Add(key, checkedEvents.ToArray());
                         }
@@ -177,7 +177,7 @@ namespace dichternebel.YaSB
                 if (value == GetPluginConfiguration()) return;
                 SetPluginConfiguration(value);
                 OnPropertyChanged();
-                OnPropertyChanged("WebSocketUri");
+                OnPropertyChanged(nameof(WebSocketUri));
             }
         }
 
@@ -192,7 +192,7 @@ namespace dichternebel.YaSB
                 if (value == GetPluginConfiguration()) return;
                 SetPluginConfiguration(value);
                 OnPropertyChanged();
-                OnPropertyChanged("WebSocketUri");
+                OnPropertyChanged(nameof(WebSocketUri));
             }
         }
 
@@ -207,7 +207,7 @@ namespace dichternebel.YaSB
                 if (value.ToString() == GetPluginConfiguration()) return;
                 SetPluginConfiguration(value.ToString());
                 OnPropertyChanged();
-                OnPropertyChanged("WebSocketUri");
+                OnPropertyChanged(nameof(WebSocketUri));
             }
         }
 
@@ -222,7 +222,7 @@ namespace dichternebel.YaSB
                 if (value.ToString() == GetPluginConfiguration()) return;
                 SetPluginConfiguration(value.ToString());
                 OnPropertyChanged();
-                OnPropertyChanged("WebSocketUri");
+                OnPropertyChanged(nameof(WebSocketUri));
             }
         }
 
@@ -237,7 +237,7 @@ namespace dichternebel.YaSB
                 if (value == GetPluginCredential()) return;
                 SetPluginCredential(value);
                 OnPropertyChanged();
-                OnPropertyChanged("WebSocketUri");
+                OnPropertyChanged(nameof(WebSocketUri));
             }
         }
 
@@ -553,11 +553,11 @@ namespace dichternebel.YaSB
             DeleteVariables();
             SetDefaultEvents();
 
-            OnPropertyChanged("WebSocketHost");
-            OnPropertyChanged("WebSocketPort");
-            OnPropertyChanged("WebSocketEndpoint");
-            OnPropertyChanged("WebSocketPassword");
-            OnPropertyChanged("WebSocketUri");
+            OnPropertyChanged(nameof(WebSocketHost));
+            OnPropertyChanged(nameof(WebSocketPort));
+            OnPropertyChanged(nameof(WebSocketEndpoint));
+            OnPropertyChanged(nameof(WebSocketPassword));
+            OnPropertyChanged(nameof(WebSocketUri));
         }
 
         private void SetDefaultEvents()
