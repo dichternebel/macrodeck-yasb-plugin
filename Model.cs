@@ -395,7 +395,8 @@ namespace dichternebel.YaSB
             var currentType = typeof(string);
             if (value != null)
             {
-                if (long.TryParse(value.ToString(), out _)) currentType = typeof(int);
+                if (int.TryParse(value.ToString(), out _)) currentType = typeof(int);
+                else if (long.TryParse(value.ToString(), out _)) currentType = typeof(string); // workaround as long as Macro Deck doesn't use long as default for "number"
                 else if (decimal.TryParse(value.ToString(), out _)) currentType = typeof(decimal);
                 else if (bool.TryParse(value.ToString(), out _)) currentType = typeof(bool);
             }
