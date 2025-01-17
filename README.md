@@ -12,7 +12,7 @@ By default the plugin listens to `General.Custom` and `Misc.GlobalVariableUpdate
 
 ## Usage
 
-The plugin will automatically connect to the Streamer.bot websocket server and listen for events configured in the plugin settings. It will get all available actions that may be triggered on application start or when the websocket connection is established.
+The plugin will automatically connect to the Streamer.bot websocket server and listen for events configured in the plugin settings. It will get all available actions that may be triggered on application start when the websocket connection is established and when opening the action dialog.
 
 ## Configuration in Streamer.bot
 
